@@ -10,7 +10,7 @@ const verilogGrammar = ohm.grammar(String.raw`
 
     ProcType = "initial" | "final" | "always_comb" | "always_latch" | "always_ff" | "always"
 
-    Decl = id "=" Exp4 -- init
+    Decl = id "=" Exp -- init
          | id -- no_init
 
     GateDecl = id "(" ListOf<Exp, ","> ")"

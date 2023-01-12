@@ -73,8 +73,8 @@ let stmt_str_help = (s) =>
  | StmtDisplay(str, es) => "$display(" ++ display_args_str(str, es) ++ ")"
  | StmtMonitor(str, es) => "$monitor(" ++ display_args_str(str, es) ++ ")"
  | StmtFinish => "$finish"
- | StmtGoto(n) => "goto " ++ Belt.Int.toString(n)
- | StmtGotoIf(e, n) => "goto " ++ Belt.Int.toString(n) ++ " when " ++ exp_str(e)
+ | StmtGoto(n) => "goto +" ++ Belt.Int.toString(n)
+ | StmtGotoUnless(e, n) => "goto +" ++ Belt.Int.toString(n) ++ " unless " ++ exp_str(e)
  }
 
 let stmt_str = (pc, lasti, s, i) => {
@@ -90,10 +90,10 @@ let stmts_str = (pc : int, ss : array<stmt>) => {
 let cont_str = (c : cont) =>
  Utils.joinNonEmpty(" ", ["assign", delay_str(c.delay), c.lhs, "=", exp_str(c.rhs) ++ ";"])
 
-let decl_init_str = (v : option<value>) =>
- switch (v) {
+let decl_init_str = (e) =>
+ switch e {
  | None => ""
- | Some(v) => " = " ++ value_str(v)
+ | Some(e) => " = " ++ exp_str(e)
  }
 
 let decl_str = (d:decl) =>
@@ -161,8 +161,8 @@ let vmodule_str = (m, proc_env) => {
  let r = intersperse(
    React.string("\n\n"),
    Js.Array2.concat(
-   [React.string(Js.Array.joinWith("\n", Js.Array.map(decl_str, m.vars))),
-    React.string(Js.Array.joinWith("\n", Js.Array.map(net_str, m.nets))),
+   [React.string(Js.Array.joinWith("\n", Js.Array.map(net_str, m.nets))),
+    React.string(Js.Array.joinWith("\n", Js.Array.map(decl_str, m.vars))),
     React.string(Js.Array.joinWith("\n", Js.Array.map(cont_str, m.conts)))],
     Js.Array.mapi(proc_str(proc_env), m.procs)))
   React.array(dummy_fragments(r))

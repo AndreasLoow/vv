@@ -133,14 +133,7 @@ let preprocess_proc = (pt, s) =>
 
 // Compiler
 
-let exp_to_val = (. e) => {
- switch (e) {
- | ExpVal(v) => v
- | _ => Js.Exn.raiseError("expected val")
- }
-}
-
-let compile_var = (lhs, rhs) => {
+let compile_var = ((lhs, rhs)) => {
  { target: lhs, init: rhs }
 }
 
@@ -212,9 +205,15 @@ let rec compile_stmt = (s) => {
  | SStmtFinish => [StmtFinish]
 
  | SStmtIf(e, s) =>
-   let ifss = compile_stmt(s)
-   Js.Array2.concat([StmtGotoIf(ExpNot(e), Js.Array.length(ifss))],
-                    ifss)
+   let ss = compile_stmt(s)
+   Js.Array2.concat([StmtGotoUnless(e, Js.Array.length(ss) + 1)],
+                    ss)
+ | SStmtIfElse(e, s1, s2) =>
+   let ss1 = compile_stmt(s1)
+   let ss2 = compile_stmt(s2)
+   Js.Array2.concatMany([StmtGotoUnless(e, Js.Array.length(ss1) + 2)],
+                        [ss1, [StmtGoto(Js.Array.length(ss2) + 1)], ss2])
+
  | SSBlock(bss) =>
    Js.Array.reduce((ss, s) => Js.Array2.concat(ss, compile_stmt(s)), [], bss)
  }
@@ -230,15 +229,10 @@ let compile_proc_type = (pt) =>
  | "always_ff" => ProcAlways(Always)
 }
 
-let compile_var_decl = ((lhs, rhs)) => {
- let rhs = Js.Option.map(exp_to_val, rhs)
- compile_var(lhs, rhs)
-}
-
 let compile_top_level = (m, tl) => {
  switch (tl) {
  | TLVars(ds) =>
-   let vars = Js.Array.map(compile_var_decl, ds)
+   let vars = Js.Array.map(compile_var, ds)
    {...m, vars: Js.Array2.concat(m.vars, vars)}
  | TLNets(nt, d, ds) =>
    let nets = Js.Array.map(compile_net(nt, d), ds)

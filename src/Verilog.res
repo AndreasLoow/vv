@@ -190,7 +190,7 @@ type stmt =
  | StmtMonitor(string, array<exp_or_time>)
  | StmtFinish
  | StmtGoto(int)
- | StmtGotoIf(exp, int)
+ | StmtGotoUnless(exp, int)
 
 // precond: edge is never EdgeNone
 let rec ee_is_sensitive_to = (ee, var, edge) =>
@@ -218,7 +218,7 @@ let tm_is_sensitive_to = (tm, var, ValBit(oldv), ValBit(newv)) =>
 
 type cont = { lhs: var, delay: delay, rhs: exp }
 
-type decl = { target: var, init: option<value> }
+type decl = { target: var, init: option<exp> }
 
 // Table 6-1—Built-in net types
 type net_type = NetTypeWire // Synonyms: tri
@@ -360,40 +360,6 @@ let get_net_delay = (nets, netname) => {
 let net_has_driver = (netname, conts) => {
  Js.Array.some(n => n.lhs == netname, conts)
 }
-
-let build_proc_state = (p) =>
- switch (p.proc_type) {
- // REF(p. 207): The procedure is automatically triggered once at time zero, after all initial and always
- // procedures have been started so that the outputs of the procedure are consistent with the inputs.
- | ProcAlways(AlwaysComb) => { pc: 1, state: ProcStateRunning } // pc = 1 to skip initial event control
- | ProcAlways(Always) => { pc: 0, state: ProcStateRunning }
- | ProcInitial => { pc: 0, state: ProcStateRunning }
- | ProcFinal => { pc: 0, state: ProcStateWaiting }
- }
-
-let build_state = (m : vmodule) => {
- let proc_es = m.procs
-             |> Js.Array.mapi((p, i) => (p, i))
-             |> Js.Array.filter(((p, _)) => proc_run_at_0(p.proc_type))
-             |> Js.Array.map(((p, i)) => EventEvaluation(next_event_id(), IndexProcess(i)))
-
- { vmodule: m,
-   // todo: init properly, vars = x and nets = z
-   // Belt.Map.String.empty
-   status: Running,
-   env: Belt.Map.String.fromArray(Js.Array2.concat(
-     Belt.Array.map(m.nets, net => (net.name, ValBit(net_has_driver(net.name, m.conts) ? BitX : BitZ))),
-     Belt.Array.map(m.vars, d => (d.target, Js.Option.getWithDefault(ValBit(BitX), d.init))))),
-   // ASSUMPTION: Based on what simulators seem to do, this should be X,
-   // but I haven't found anything in the standard saying this.
-   cont_env: Belt.Array.map(m.conts, _ => ValBit(BitX)),
-   // ASSUMPTION: Always processes start in running state... they have not reached the first wait statement yet...
-   proc_env: Belt.Array.map(m.procs, build_proc_state),
-   queue: [(0, {...empty_event_queue, active: proc_es})],
-   monitor: None,
-   output: "",
-   time: 0 }
- }
 
 let val_bit_bind = (f, v) =>
  switch v {
@@ -676,10 +642,20 @@ let is_if_true = (ValBit(b)) =>
   | _ => false
  }
 
-let step_proc_goto = (s, i, newpc) => {
+let step_proc_goto = (s, i, jump) => {
  let proc_env = Js.Array.copy(s.proc_env)
- let ps = s.proc_env[i]
- let _ = Belt.Array.setExn(proc_env, i, {...ps, pc: newpc})
+ let ps = proc_env[i]
+ let p = s.vmodule.procs[i]
+
+ let newpc = ps.pc + jump
+
+ let ps = if newpc == Js.Array.length(p.stmts) {
+  {...ps, pc: 0, state: is_repeating_proc_type(p.proc_type) ? ProcStateRunning : ProcStateFinished}
+ } else {
+  {...ps, pc: newpc}
+ }
+
+ let _ = Belt.Array.setExn(proc_env, i, ps)
  {...s, proc_env: proc_env}
 }
 
@@ -838,12 +814,17 @@ let step_proc = (s, ei, i) => {
   }
  | StmtFinish =>
    {...s, status: Finished}
- | StmtGoto(newpc) => step_proc_goto(s, i, newpc)
- | StmtGotoIf(e, newpc) => {
+ | StmtGoto(jump) =>
+   step_proc_goto(s, i, jump)
+ | StmtGotoUnless(e, jump) => {
    if is_if_true(run_exp(s.env, e)) {
-    step_proc_goto(s, i, newpc)
-   } else {
+    let ps = proc_inc_pc(p, ps)
+    let proc_env = Js.Array.copy(s.proc_env)
+    let _ = Belt.Array.setExn(proc_env, i, ps)
+    let s = {...s, proc_env: proc_env}
     s
+   } else {
+    step_proc_goto(s, i, jump)
    }
   }
  }
@@ -881,6 +862,46 @@ let region_shift = (region, ei) => {
 }
 
 // Entry functions:
+
+let build_proc_state = (p) =>
+ switch (p.proc_type) {
+ // REF(p. 207): The procedure is automatically triggered once at time zero, after all initial and always
+ // procedures have been started so that the outputs of the procedure are consistent with the inputs.
+ | ProcAlways(AlwaysComb) => { pc: 1, state: ProcStateRunning } // pc = 1 to skip initial event control
+ | ProcAlways(Always) => { pc: 0, state: ProcStateRunning }
+ | ProcInitial => { pc: 0, state: ProcStateRunning }
+ | ProcFinal => { pc: 0, state: ProcStateWaiting }
+ }
+
+let run_exp_init = (env, eopt) =>
+ switch eopt {
+ | None => ValBit(BitX)
+ | Some(e) => run_exp(env, e)
+ }
+
+let build_state = (m : vmodule) => {
+ let proc_es = m.procs
+             |> Js.Array.mapi((p, i) => (p, i))
+             |> Js.Array.filter(((p, _)) => proc_run_at_0(p.proc_type))
+             |> Js.Array.map(((p, i)) => EventEvaluation(next_event_id(), IndexProcess(i)))
+
+ let env = Belt.Map.String.fromArray(Belt.Array.map(m.nets, net => (net.name, ValBit(net_has_driver(net.name, m.conts) ? BitX : BitZ))))
+ let env = Belt.Array.reduce(m.vars, env, (env, d) => Belt.Map.String.set(env, d.target, run_exp_init(env, d.init)))
+
+ { vmodule: m,
+   status: Running,
+   env: env,
+   // ASSUMPTION: Based on what simulators seem to do, this should be X,
+   //             but I haven't found anything in the standard saying this
+   cont_env: Belt.Array.map(m.conts, _ => ValBit(BitX)),
+   // ASSUMPTION: Always processes start in running state,
+   //             they have not reached the first wait statement yet.
+   proc_env: Belt.Array.map(m.procs, build_proc_state),
+   queue: [(0, {...empty_event_queue, active: proc_es})],
+   monitor: None,
+   output: "",
+   time: 0 }
+ }
 
 let build_initial_cont_update_event = (s, p, i) => {
   // TODO: Should we always schedule an event -- even when v is just 'z?
