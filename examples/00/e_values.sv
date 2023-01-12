@@ -13,7 +13,8 @@ module e_values;
 // consider adding support for them in the future...
 
 // For convenience, for now, "0" and "1" are
-// parsed as bit values rather than 32-bit integers
-// as the standard says they should.
+// parsed as bit values rather than "at least"
+// 32-bit integers as the standard says they 
+// should (p. 73).
 
 endmodule
