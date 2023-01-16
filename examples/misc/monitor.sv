@@ -2,7 +2,8 @@ module monitor;
 
 // Basic $monitor example
 
-// (Note that the order of execution does not matter, the output is the same.)
+// Note that the order of execution does not matter,
+// the output is the same.
 
 logic a;
    

@@ -25,6 +25,9 @@ initial a = 0;
 // - active,
 // - inactive,
 // - and nba (nonblocking assignments).
+//
+// (Full Verilog contains more, we do not
+// consider them here.)
 
 // After loading this module, you will see a
 // blue-marked event in the active region for

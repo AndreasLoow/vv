@@ -1,4 +1,4 @@
-module always_nonblocking;
+module comb_nonblocking;
 
 // One should never use nonblocking assignments in
 // combinational blocks. Here we illustrate one

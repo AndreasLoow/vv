@@ -1,4 +1,4 @@
-module always_comb2;
+module always_star1;
 
 // Examples from the standard, p. 219;
 // illustrates that @* is preprocessed away correctly 

@@ -1,5 +1,8 @@
 module nonblocking_cont;
 
+// Simple example of interaction between nonblocking
+// assignments and continuous assignments
+
 logic a;
 
 wire b;

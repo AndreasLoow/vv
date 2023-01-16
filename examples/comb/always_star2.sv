@@ -1,4 +1,4 @@
-module always_star;
+module always_star2;
 
 logic a, b;  
 

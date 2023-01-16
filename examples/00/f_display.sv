@@ -1,4 +1,4 @@
-module f_output;
+module f_display;
 
 // The display tasks ($display, $monitor, etc.)
 // can be invoked in a great variety of ways;

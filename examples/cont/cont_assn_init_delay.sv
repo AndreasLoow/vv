@@ -1,9 +1,12 @@
+module cont_assn_init_delay;
+
+// Test for what to do before first update
+// to delayed net
+
 // Simulators seem to say the following for this one:
 // 
-// x                   0
-// 1                   5
-
-module cont_assn_init_delay;
+// time = 0, w = x
+// time = 5, w = 1
   
 wire w;
   
