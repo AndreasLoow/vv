@@ -44,3 +44,7 @@ ol li {
 .active {
  color:blue;
 }
+
+.active:hover {
+ cursor:pointer;
+}
