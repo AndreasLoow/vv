@@ -1,9 +1,8 @@
 open Compiler
 @module("./parser") external parse: string => parse_result = "parse"
+@scope("window") @val external alert: string => unit = "alert"
 
 open Verilog
-
-let js_alert = (msg) => { %raw(`alert(msg)`) }
 
 @react.component
 let make = () => {
@@ -23,7 +22,7 @@ let make = () => {
   let (state, setState) = React.useState(_ => sinit)
 
   let handle_event = (time, i, _e) => {
-   setState(s => if event_active(s, time, i) { run_event(s, i) } else { s })
+   setState(s => if event_active(s, time) { run_event(s, i) } else { s })
   }
 
   let handle_inactive_done = (_e) => {
@@ -53,22 +52,22 @@ let make = () => {
      | s =>
        let s = run_init(s)
        setState(_ => s)
-     | exception CompileError(msg) => js_alert("Compile phase of parsing failed: " ++ msg)
+     | exception CompileError(msg) => alert("Compile phase of parsing failed: " ++ msg)
      }
    | ParseFail(err) =>
      //Js.log(err)
-     js_alert("Could not parse Verilog code: " ++ err)
+     alert("Could not parse Verilog code: " ++ err)
    }
   }
 
   let handle_parse_change = (e) => {
-   setParseState(s => ReactEvent.Form.target(e)["value"])
+   setParseState(_ => ReactEvent.Form.target(e)["value"])
    ReactEvent.Form.preventDefault(e)
   }
 
   let handle_template_change = (e) => {
    let val = ReactEvent.Form.target(e)["value"]
-   setParseState(s => Belt.Map.String.getExn(Templates.templates, val))
+   setParseState(_ => Belt.Map.String.getExn(Templates.templates, val))
    ReactEvent.Form.preventDefault(e)
   }
 
@@ -91,16 +90,16 @@ let make = () => {
     Belt.Array.mapWithIndex(q.active, (i, e) =>
      <li key={ event_key(e) }
          onClick={ handle_event(qi, i) }
-         className={ className_wrapper(event_active(state, qi, i)) }>
+         className={ className_wrapper(event_active(state, qi)) }>
       { Pp.event_str(state.vmodule.conts, e) }
      </li>)
 
    let inactive_es =
-    Belt.Array.mapWithIndex(q.inactive, (i, e) =>
+    Belt.Array.map(q.inactive, (e) =>
      <li key={ event_key(e) }> { Pp.event_str(state.vmodule.conts, e) } </li>)
 
    let nba_es =
-    Belt.Array.mapWithIndex(q.nba, (i, e) =>
+    Belt.Array.map(q.nba, (e) =>
      <li key={ event_key(e) }> { Pp.event_str(state.vmodule.conts, e) } </li>)
 
    <li key={ "Time" ++ Belt.Int.toString(qi) }>

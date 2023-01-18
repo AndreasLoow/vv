@@ -296,18 +296,17 @@ let next_event_id = () => {
  id
 }
 
-type process_index = IndexCont(int) | IndexProcess(int)
-
 type rec event
  = EventContUpdate(event_id, int, value) // continuous assignment update
  | EventBlockUpdate(event_id, int, string, value) // delayed assignment from block
  | EventNBA(event_id, string, value)
- | EventEvaluation(event_id, process_index) // wake up from waiting
+ | EventEvaluation(event_id, int) // run process (e.g., wake up from waiting)
  | Events(event_id, array<event>) // sequence of events from NBA, must be just EventNBA...
 
 let dest_EventNBA = (e) =>
  switch e {
  | EventNBA(_, var, v) => (var, v)
+ | _ => Js.Exn.raiseError("bug: expected EventNBA")
  }
 
 let event_key = (e) =>
@@ -480,17 +479,6 @@ let rec exp_depends_on_var = (e, v) =>
 let cont_depends_on_var = (cont, v) =>
  exp_depends_on_var(cont.rhs, v)
 
-let build_evaluation_events = (conts, var) => {
- open Js.Array
- conts |> mapi((c, i) => (c, i))
-       |> filter(((c, _)) => cont_depends_on_var(c, var))
-       |> map(ci => EventEvaluation(next_event_id(), IndexCont(snd(ci))))
-}
-
-let in_array = (x, xs) => {
- Js.Option.isSome(Js.Array.find(e => e == x, xs))
-}
-
 // ASSUMPTION: Simply add net delay to each update... is this the same as doing a separate delay
 //             when the update is eventually run? If so, this is much easier to implement...
 let calculate_event_delay = (nets, netname, delay) => {
@@ -510,7 +498,7 @@ let find_queued_update = (queue, maxtime, driver_i) => {
 
  let is_event_update_for_driver = (e) => {
    switch (e) {
-   | EventContUpdate(_, i, v) => i == driver_i
+   | EventContUpdate(_, i, _) => i == driver_i
    | _ => false
    }
   }
@@ -585,9 +573,9 @@ let proc_inc_pc = (p, ps) => {
  let newpc = ps.pc + 1
 
  if newpc == Js.Array.length(p.stmts) {
-  {...ps, pc: 0, state: is_repeating_proc_type(p.proc_type) ? ProcStateRunning : ProcStateFinished}
+  {pc: 0, state: is_repeating_proc_type(p.proc_type) ? ProcStateRunning : ProcStateFinished}
  } else {
-  {...ps, pc: newpc, state: ProcStateRunning}
+  {pc: newpc, state: ProcStateRunning}
  }
 }
 
@@ -603,9 +591,9 @@ let run_listeners = (s, contI, var, oldv, newv) => {
               |> Js.Array.mapi((var, i) => (var, i))
               |> Js.Array.filter(((c, j)) => contI != j && cont_depends_on_var(c, var))
 
-  let updates = Js.Array.map(((c : cont, i)) => (c.delay, EventContUpdate(next_event_id(), i, run_exp(s.env, c.rhs))), updates)
+  let updates = Js.Array.map(((c : cont, i)) => (c.delay, (i, run_exp(s.env, c.rhs))), updates)
 
-  let replace_update_event = (queue, (delay, EventContUpdate(_, i, v))) => {
+  let replace_update_event = (queue, (delay, (i, v))) => {
     let delay = calculate_event_delay(s.vmodule.nets, s.vmodule.conts[i].lhs, delay)
     // ASSUMPTION: The "to value" is the new value of the driver, not the new value (= result of resolution function)
     //             of the net.
@@ -651,7 +639,7 @@ let run_listeners = (s, contI, var, oldv, newv) => {
    let _ = Belt.Array.setExn(proc_env, j, ps)
   }
 
-  let newevents = Js.Array.map(((_, i)) => EventEvaluation(next_event_id(), IndexProcess(i)), toactivate)
+  let newevents = Js.Array.map(((_, i)) => EventEvaluation(next_event_id(), i), toactivate)
   let (ts, queue0) = queue[0]
   let active = Js.Array2.concat(queue0.active, newevents)
   let queue0 = {...queue0, active: active}
@@ -680,7 +668,7 @@ let step_proc_goto = (s, i, jump) => {
  let newpc = ps.pc + jump
 
  let ps = if newpc == Js.Array.length(p.stmts) {
-  {...ps, pc: 0, state: is_repeating_proc_type(p.proc_type) ? ProcStateRunning : ProcStateFinished}
+  {pc: 0, state: is_repeating_proc_type(p.proc_type) ? ProcStateRunning : ProcStateFinished}
  } else {
   {...ps, pc: newpc}
  }
@@ -759,7 +747,7 @@ let run_display = (s, str, es, prev) => {
  }
 }
 
-let step_proc = (s, ei, i) => {
+let step_proc = (s, i) => {
  let p = s.vmodule.procs[i]
  let ps = s.proc_env[i]
 
@@ -770,19 +758,18 @@ let step_proc = (s, ei, i) => {
    let proc_env = Js.Array.copy(s.proc_env)
    let _ = Belt.Array.setExn(proc_env, i, ps)
 
-   let queue = add_event(s.queue, RegionActive, s.time + delay, EventEvaluation(next_event_id(), IndexProcess(i)))
+   let queue = add_event(s.queue, RegionActive, s.time + delay, EventEvaluation(next_event_id(), i))
    {...s, proc_env: proc_env, queue: queue}
  }
- | StmtTimingControl(TMEvent(d)) => {
+ | StmtTimingControl(TMEvent(_)) => {
    let ps = {...ps, state: ProcStateWaiting}
    let proc_env = Js.Array.copy(s.proc_env)
    let _ = Belt.Array.setExn(proc_env, i, ps)
 
-   // TODO: A little unclear how waiting processes should be represented,
-   //       currently they are just represented with the help of the list of processes,
-   //       i.e., no events
    {...s, proc_env: proc_env}
  }
+ | StmtTimingControl(TMStar) =>
+   Js.Exn.raiseError("impossible, all stars should have been preprocessed away")
  | StmtAssn(AssnBlocking, var, dopt, e) => {
    let newv = run_exp(s.env, e)
 
@@ -860,7 +847,7 @@ let step_proc = (s, ei, i) => {
  }
 }
 
-let steps_proc = (s, ei, i) => {
+let steps_proc = (s, i) => {
  let fuel = ref(0)
  let sref = ref(s)
 
@@ -869,7 +856,7 @@ let steps_proc = (s, ei, i) => {
        sref.contents.proc_env[i].state == ProcStateRunning {
    fuel := fuel.contents + 1
 
-   sref := step_proc(sref.contents, ei, i)
+   sref := step_proc(sref.contents, i)
  }
 
  if fuel.contents == 100 { Js.Exn.raiseError("time out!") }
@@ -880,7 +867,7 @@ let steps_proc = (s, ei, i) => {
 let region_shift = (region, ei) => {
  let e = region[ei]
  switch e {
- | Events(_, [e]) =>
+ | Events(_, [_]) =>
    let _ = Js.Array2.spliceInPlace(region, ~pos=ei, ~remove=1, ~add=[])
  | Events(id, es) =>
    let es = Js.Array.copy(es)
@@ -916,7 +903,7 @@ let build_state = (m : vmodule) => {
  let proc_es = m.procs
              |> Js.Array.mapi((p, i) => (p, i))
              |> Js.Array.filter(((p, _)) => proc_run_at_0(p.proc_type))
-             |> Js.Array.map(((p, i)) => EventEvaluation(next_event_id(), IndexProcess(i)))
+             |> Js.Array.map(((_, i)) => EventEvaluation(next_event_id(), i))
 
  let env = Belt.Map.String.fromArray(Belt.Array.map(m.nets, net => (net.name, ValBit(net_has_driver(net.name, m.conts) ? BitX : BitZ))))
  let env = Belt.Array.reduce(m.vars, env, (env, d) => Belt.Map.String.set(env, d.target, run_exp_init(env, d.init)))
@@ -957,7 +944,7 @@ let run_init = (s:state) => {
   {...s, queue: queue}
  }
 
-let event_active = (s, time, i) => {
+let event_active = (s, time) => {
  s.status == Running && s.time == time
 }
 
@@ -986,7 +973,7 @@ let run_event = (s:state, ei:int) => {
    // propagate new driver value to net, i.e., re-run resolution function
    let newv = s.vmodule.conts
             |> Js.Array.mapi((var, i) => (var, i))
-            |> Js.Array.filter(((c, i)) => c.lhs == var)
+            |> Js.Array.filter(((c, _)) => c.lhs == var)
             |> Js.Array.map(((_, i)) => Belt.Array.getExn(cont_env, i))
             |> Utils.reduce0(val_bit_lift2(net_type_res(net.type_)))
    let env = Belt.Map.String.set(s.env, var, newv)
@@ -995,14 +982,14 @@ let run_event = (s:state, ei:int) => {
    let s = run_listeners(s, i, var, oldv, newv)
    s
 
- | EventEvaluation(_, IndexProcess(i)) =>
+ | EventEvaluation(_, i) =>
    let ps = s.proc_env[i]
    let ps = {...ps, state: ProcStateRunning}
    let proc_env = Js.Array.copy(s.proc_env)
    let _ = Belt.Array.setExn(proc_env, i, ps)
    let s = {...s, proc_env: proc_env}
 
-   steps_proc(s, ei, i)
+   steps_proc(s, i)
 
  | EventBlockUpdate(_, i, var, newv) =>
    let oldv = Belt.Map.String.getExn(s.env, var)
@@ -1017,7 +1004,7 @@ let run_event = (s:state, ei:int) => {
    let s = {...s, proc_env: proc_env, env: env}
    let s = run_listeners(s, -1, var, oldv, newv)
  
-   steps_proc(s, ei, i)
+   steps_proc(s, i)
 
  | Events(_, es) =>
    let es = Js.Array.copy(es)
@@ -1029,12 +1016,15 @@ let run_event = (s:state, ei:int) => {
    let s = {...s, env: env}
    let s = run_listeners(s, -1, var, oldv, newv)
    s
+
+ | EventNBA(_, _, _) =>
+   Js.Exn.raiseError("impossible: EventNBA cannot be in active region")
  }
 }
 
 let inactive_done_active = (s) => {
  if s.status == Running {
-  let (ts, queue0) = s.queue[0]
+  let (_, queue0) = s.queue[0]
   queue0.active == [] &&
   queue0.inactive != []
  } else {
@@ -1044,7 +1034,7 @@ let inactive_done_active = (s) => {
 
 // Precondition: inactive_done_active must be true
 let run_inactive_done = (s) => {
- let (ts, queue0) = s.queue[0]
+ let (_, queue0) = s.queue[0]
 
  let queue0 = {...queue0, active: queue0.inactive, inactive: []}
  let queue = Js.Array.copy(s.queue)
@@ -1054,7 +1044,7 @@ let run_inactive_done = (s) => {
 
 let nba_done_active = (s) => {
  if s.status == Running {
-  let (ts, queue0) = s.queue[0]
+  let (_, queue0) = s.queue[0]
   queue0.active == [] &&
   queue0.inactive == [] &&
   queue0.nba != []
@@ -1065,7 +1055,7 @@ let nba_done_active = (s) => {
 
 // Precondition: nba_done_active must be true
 let run_nba_done = (s) => {
- let (ts, queue0) = s.queue[0]
+ let (_, queue0) = s.queue[0]
 
  let e = Events(next_event_id(), queue0.nba)
  let queue0 = {...queue0, active: Js.Array2.concat(queue0.active, [e]), nba: []}

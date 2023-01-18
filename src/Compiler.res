@@ -53,6 +53,7 @@ let rec reads_star_exp = (e) =>
  | ExpVar(var) => Belt.Set.String.fromArray([var])
  | ExpNot(e) => reads_star_exp(e)
  | ExpOp2(e1, _, e2) => Belt.Set.String.union(reads_star_exp(e1), reads_star_exp(e2))
+ | ExpCond(e1, e2, e3) => Utils.unions([reads_star_exp(e1), reads_star_exp(e2), reads_star_exp(e3)])
 }
 
 let reads_star_exp_or_time = (e) =>
@@ -247,6 +248,7 @@ let compile_proc_type = (pt) =>
  | "always_comb" => ProcAlways(AlwaysComb)
  | "always_latch" => ProcAlways(AlwaysLatch)
  | "always_ff" => ProcAlways(AlwaysFf)
+ | _ => Js.Exn.raiseError("impossible proc type")
 }
 
 let compile_top_level = (m, tl) => {
