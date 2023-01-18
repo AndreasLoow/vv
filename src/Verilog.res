@@ -27,6 +27,7 @@ type rec exp =
   | ExpVar(var)
   | ExpNot(exp)
   | ExpOp2(exp, op2, exp)
+  | ExpCond(exp, exp, exp)
 
 // JS API
 let mk_ExpVal = (v) => ExpVal(v)
@@ -38,6 +39,7 @@ let mk_ExpOp2_BAnd = (e1, e2) => ExpOp2(e1, BAnd, e2)
 let mk_ExpOp2_BOr = (e1, e2) => ExpOp2(e1, BOr, e2)
 let mk_ExpOp2_BXOr = (e1, e2) => ExpOp2(e1, BXOr, e2)
 let mk_ExpOp2_Add = (e1, e2) => ExpOp2(e1, Add, e2)
+let mk_ExpCond = (e1, e2, e3) => ExpCond(e1, e2, e3)
 
 type exp_or_time = ETExp(exp) | ETTime
 
@@ -392,6 +394,7 @@ let val_and = val_bit_lift2(bit_and)
 let val_or = val_bit_lift2(bit_or)
 let val_xor = val_bit_lift2(bit_xor)
 let val_add = val_bit_lift2(bit_add)
+let val_cond = val_bit_lift2(bit_cond)
 let val_is_true = val_bit_bind(bit_is_true)
 let val_is_false = val_bit_bind(bit_is_false)
 let val_edge = val_bit_bind2(bit_edge)
@@ -441,6 +444,19 @@ let rec run_exp = (env, e) =>
    | BXOr => val_xor(v1, v2)
    | Add => val_add(v1, v2)
    }
+ | ExpCond(e1, e2, e3) =>
+   let v1 = run_exp(env, e1)
+
+   switch v1 {
+   | ValBit(BitTrue) =>
+     run_exp(env, e2)
+   | ValBit(BitFalse) =>
+     run_exp(env, e3)
+   | _ =>
+     let v2 = run_exp(env, e2)
+     let v3 = run_exp(env, e3)
+     val_cond(v2, v3)
+   }
  }
 
 let run_exp_or_time = (time, env, e) =>
@@ -454,7 +470,11 @@ let rec exp_depends_on_var = (e, v) =>
  | ExpVal(_) => false
  | ExpVar(v') => v == v'
  | ExpNot(e) => exp_depends_on_var(e, v)
- | ExpOp2(e1, _, e2) => exp_depends_on_var(e1, v) || exp_depends_on_var(e2, v)
+ | ExpOp2(e1, _, e2) => exp_depends_on_var(e1, v) ||
+                        exp_depends_on_var(e2, v)
+ | ExpCond(e1, e2, e3) => exp_depends_on_var(e1, v) ||
+                          exp_depends_on_var(e2, v) ||
+                          exp_depends_on_var(e3, v)
  }
 
 let cont_depends_on_var = (cont, v) =>

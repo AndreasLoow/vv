@@ -24,6 +24,7 @@ let rec exp_str = (e) =>
  | ExpVar(var) => var
  | ExpNot(e) => "!(" ++ exp_str(e) ++ ")"
  | ExpOp2(e1, op, e2) => "(" ++ exp_str(e1) ++ ") " ++ op2_str(op) ++ " (" ++ exp_str(e2) ++ ")"
+ | ExpCond(e1, e2, e3) => "(" ++ exp_str(e1) ++ ") ? ("  ++ exp_str(e2) ++ ") : (" ++ exp_str(e3) ++ ")"
  }
 
 let exp_or_time_str = (e) =>

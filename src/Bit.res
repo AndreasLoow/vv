@@ -139,3 +139,11 @@ let bit_add = (v1, v2) =>
 
  | _ => BitX
  }
+
+// REF: Table 11-20—Ambiguous condition results for conditional operator
+let bit_cond = (v1, v2) =>
+ switch (v1, v2) {
+ | (BitTrue, BitTrue) => BitTrue
+ | (BitFalse, BitFalse) => BitFalse
+ | _ => BitX
+ }

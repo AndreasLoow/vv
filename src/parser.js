@@ -66,28 +66,31 @@ const verilogGrammar = ohm.grammar(String.raw`
                | id -- id
 
     // REF: 11.3.2 Operator precedence
-    Exp = Exp "||" Exp1 -- lor
+    Exp = Exp1 "?" Exp ":" Exp -- cond
         | Exp1
 
-    Exp1 = Exp1 "&&" Exp2 -- land
+    Exp1 = Exp1 "||" Exp2 -- lor
          | Exp2
 
-    Exp2 = Exp2 "|" Exp3 -- bor
+    Exp2 = Exp2 "&&" Exp3 -- land
          | Exp3
 
-    Exp3 = Exp3 "^" Exp4 -- bxor
+    Exp3 = Exp3 "|" Exp4 -- bor
          | Exp4
 
-    Exp4 = Exp4 "&" Exp5 -- band
+    Exp4 = Exp4 "^" Exp5 -- bxor
          | Exp5
 
-    Exp5 = Exp5 "+" Exp6 -- add
+    Exp5 = Exp5 "&" Exp6 -- band
          | Exp6
 
-    Exp6 = ("!" | "~") Exp6 -- not
+    Exp6 = Exp6 "+" Exp7 -- add
          | Exp7
 
-    Exp7 = id -- id
+    Exp7 = ("!" | "~") Exp7 -- not
+         | Exp8
+
+    Exp8 = id -- id
          | bit -- bit
          | "0" -- zero
          | "1" -- one
@@ -170,31 +173,34 @@ t.addOperation('translate', {
     Event_Exp1_negedge(_, id) { return Verilog.mk_EENeg(id.translate()); },
 
     Exp(e1) { return e1.translate(); },
-    Exp_lor(e1, _, e2) { return Verilog.mk_ExpOp2_LOr(e1.translate(), e2.translate()); },
+    Exp_cond(e1, _1, e2, _2, e3) { return Verilog.mk_ExpCond(e1.translate(), e2.translate(), e3.translate()); },
 
     Exp1(e1) { return e1.translate(); },
-    Exp1_land(e1, _, e2) { return Verilog.mk_ExpOp2_LAnd(e1.translate(), e2.translate()); },
+    Exp1_lor(e1, _, e2) { return Verilog.mk_ExpOp2_LOr(e1.translate(), e2.translate()); },
 
     Exp2(e1) { return e1.translate(); },
-    Exp2_bor(e1, _, e2) { return Verilog.mk_ExpOp2_BOr(e1.translate(), e2.translate()); },
+    Exp2_land(e1, _, e2) { return Verilog.mk_ExpOp2_LAnd(e1.translate(), e2.translate()); },
 
     Exp3(e1) { return e1.translate(); },
-    Exp3_bxor(e1, _, e2) { return Verilog.mk_ExpOp2_BXOr(e1.translate(), e2.translate()); },
+    Exp3_bor(e1, _, e2) { return Verilog.mk_ExpOp2_BOr(e1.translate(), e2.translate()); },
 
     Exp4(e1) { return e1.translate(); },
-    Exp4_band(e1, _, e2) { return Verilog.mk_ExpOp2_BAnd(e1.translate(), e2.translate()); },
+    Exp4_bxor(e1, _, e2) { return Verilog.mk_ExpOp2_BXOr(e1.translate(), e2.translate()); },
 
     Exp5(e1) { return e1.translate(); },
-    Exp5_add(e1, _, e2) { return Verilog.mk_ExpOp2_Add(e1.translate(), e2.translate()); },
+    Exp5_band(e1, _, e2) { return Verilog.mk_ExpOp2_BAnd(e1.translate(), e2.translate()); },
 
     Exp6(e1) { return e1.translate(); },
-    Exp6_not(_1, e1) { return Verilog.mk_ExpNot(e1.translate()); },
+    Exp6_add(e1, _, e2) { return Verilog.mk_ExpOp2_Add(e1.translate(), e2.translate()); },
 
-    Exp7_id(e1) { return Verilog.mk_ExpVar(e1.translate()); },
-    Exp7_bit(e1) { return Verilog.mk_ExpVal(e1.translate()); },
-    Exp7_zero(_) { return Verilog.mk_ExpVal(Verilog.mk_ValBit(Bit.mk_BitFalse)); },
-    Exp7_one(_) { return Verilog.mk_ExpVal(Verilog.mk_ValBit(Bit.mk_BitTrue)); },
-    Exp7_paren(_1, e1, _2) { return e1.translate(); },
+    Exp7(e1) { return e1.translate(); },
+    Exp7_not(_1, e1) { return Verilog.mk_ExpNot(e1.translate()); },
+
+    Exp8_id(e1) { return Verilog.mk_ExpVar(e1.translate()); },
+    Exp8_bit(e1) { return Verilog.mk_ExpVal(e1.translate()); },
+    Exp8_zero(_) { return Verilog.mk_ExpVal(Verilog.mk_ValBit(Bit.mk_BitFalse)); },
+    Exp8_one(_) { return Verilog.mk_ExpVal(Verilog.mk_ValBit(Bit.mk_BitTrue)); },
+    Exp8_paren(_1, e1, _2) { return e1.translate(); },
 
     ExpOrTime_exp(e) { return Verilog.mk_ETExp(e.translate()); },
     ExpOrTime_time(_) { return Verilog.mk_ETTime; },
