@@ -8,10 +8,15 @@ type value = ValBit(bit) //| ValArray(array<bit>)
 // JS API
 let mk_ValBit = (b) => ValBit(b)
 
-// must be here since called from format
 let value_str = (v) => {
  switch (v) {
  | ValBit(b) => "1'b" ++ Bit.pp_bit(b)
+ }
+}
+
+let value_str_clean = (v) => {
+ switch (v) {
+ | ValBit(b) => Bit.pp_bit(b)
  }
 }
 
@@ -679,7 +684,7 @@ let step_proc_goto = (s, i, jump) => {
 
 let value_or_time_str_value = (v) =>
  switch v {
- | VTValue(v) => value_str(v)
+ | VTValue(v) => value_str_clean(v)
  | _ => Js.Exn.raiseError("expected value found time")
  }
 
