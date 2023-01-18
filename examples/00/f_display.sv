@@ -11,8 +11,8 @@ module f_display;
 // and only %b (for value) and %d (for time)
 // are supported, e.g.:
 
-logic b = 1'b0;
+logic a = 1'b0;
 
-initial $display("a = %b at time %d", b, $time);
+initial $display("a = %b at time %d", a, $time);
 
 endmodule
