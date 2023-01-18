@@ -25,7 +25,7 @@ let mk_SSBlock = (ss) => SSBlock(ss)
 type top_level =
  | TLVars(array<(string, option<exp>)>)
  | TLNets(string, delay, array<string>)
- | TLGates(string, delay, array<(string, array<exp>)>)
+ | TLGates(string, delay, array<array<exp>>)
  | TLCont(string, delay, exp)
  | TLProc(string, stmt_structured)
 
@@ -186,7 +186,7 @@ let dest_ExpVar = (e) =>
  | _ => raise(CompileError("Expected variable, found: " ++ Pp.exp_str(e)))
  }
 
-let compile_not = (d, (_, decl)) => {
+let compile_not = (d, decl) => {
  if Js.Array.length(decl) == 2 {
   let lhs = dest_ExpVar(decl[0]);
   let rhs = decl[1];
@@ -196,7 +196,7 @@ let compile_not = (d, (_, decl)) => {
  }
 }
 
-// TODO: unclear if should be lazy or strict, but probably strict as here
+// TODO: unclear if should be lazy or strict
 let gate_to_op2 = (g) =>
  switch g {
  | "and" => BAnd
@@ -205,10 +205,21 @@ let gate_to_op2 = (g) =>
  | _ => Js.Exn.raiseError("impossible gate")
  }
 
-let compile_op2 = (op2, d, (_, decl)) => {
+let compile_op2 = (op2, d, decl) => {
  if Js.Array.length(decl) == 3 {
   let lhs = dest_ExpVar(decl[0]);
   let rhs = ExpOp2(decl[1], op2, decl[2]);
+  { lhs: lhs, delay: d, rhs: rhs }
+ } else {
+  raise(CompileError("Expected three arguments to gate"))
+ }
+}
+
+// No built-in operator for nor
+let compile_nor = (d, decl) => {
+ if Js.Array.length(decl) == 3 {
+  let lhs = dest_ExpVar(decl[0]);
+  let rhs = ExpNot(ExpOp2(decl[1], BOr, decl[2]));
   { lhs: lhs, delay: d, rhs: rhs }
  } else {
   raise(CompileError("Expected three arguments to gate"))
@@ -269,6 +280,9 @@ let compile_top_level = (m, tl) => {
    } else if (gate == "and" || gate == "or") {
     let op2 = gate_to_op2(gate)
     let conts = Js.Array.map(compile_op2(op2, d), ds)
+    {...m, conts: Js.Array2.concat(m.conts, conts)}
+   } else if (gate == "nor") {
+    let conts = Js.Array.map(compile_nor(d), ds)
     {...m, conts: Js.Array2.concat(m.conts, conts)}
    } else {
     raise(CompileError("Unsupported gate: " ++ gate))

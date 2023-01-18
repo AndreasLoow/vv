@@ -13,7 +13,7 @@ const verilogGrammar = ohm.grammar(String.raw`
     Decl = id "=" Exp -- init
          | id -- no_init
 
-    GateDecl = id "(" ListOf<Exp, ","> ")"
+    GateDecl = id? "(" ListOf<Exp, ","> ")"
 
     Top = type NonemptyListOf<Decl, ","> ";" -- decl
 
@@ -123,7 +123,7 @@ t.addOperation('translate', {
     Decl_no_init(lhs) { return Compiler.mk_pair(lhs.translate(), Utils.mk_None); },
     Decl_init(lhs, _, rhs) { return Compiler.mk_pair(lhs.translate(), Utils.mk_Some(rhs.translate())); },
 
-    GateDecl(id, _1, es, _2) { return Compiler.mk_pair(id.sourceString, es.asIteration().children.map(e => e.translate())); },
+    GateDecl(_1, _2, es, _3) { return es.asIteration().children.map(e => e.translate()); },
     
     Top_decl(_1, ds, _2) { return Compiler.mk_TLVars(ds.asIteration().children.map(d => d.translate())); },
     Top_net(nt, ds, _2) { return Compiler.mk_TLNets(nt.translate(), Verilog.mk_Delay0, ds.asIteration().children.map(d => d.translate())); },
