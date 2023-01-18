@@ -8,7 +8,7 @@ const verilogGrammar = ohm.grammar(String.raw`
   verilogGrammar {
     Module = "module" id ";" Top* "endmodule"
 
-    ProcType = "initial" | "final" | "always_comb" | "always_latch" | "always_ff" | "always"
+    ProcType = "initial" | "always_comb" | "always_latch" | "always_ff" | "always"
 
     Decl = id "=" Exp -- init
          | id -- no_init
@@ -49,7 +49,7 @@ const verilogGrammar = ohm.grammar(String.raw`
          | "$finish" ";" -- finish
 
          | TimeCont Stmt -- time_stmt
-         | TimeCont -- time
+         | TimeCont ";" -- time
 
          | "begin" Stmt* "end" -- block
 
@@ -154,7 +154,7 @@ t.addOperation('translate', {
     Stmt_finish(_1, _2) { return Compiler.mk_SStmtFinish; },
 
     Stmt_time_stmt(tm, s) { return Compiler.mk_SStmtTimingControl(tm.translate(), Utils.mk_Some(s.translate())); },
-    Stmt_time(tm) { return Compiler.mk_SStmtTimingControl(tm.translate(), Utils.mk_None); },
+    Stmt_time(tm, _1) { return Compiler.mk_SStmtTimingControl(tm.translate(), Utils.mk_None); },
 
     Stmt_block(_1, ss, _2) { return Compiler.mk_SSBlock(ss.children.map(s => s.translate())); },
 

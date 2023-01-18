@@ -1,22 +1,20 @@
 module always_comb_writes_removed;
 
-// Just to check if vars written to in block are removed from sense list...
+// variables written to be always_comb are removed
+// from sensitivity list 
 
-logic a;
+logic a, b, c, d;
 
-initial a = #5 1'b1;
+// does not include a
+always_comb begin
+ a = 0;
+ b = a;
+end
 
-//always @(a) a = a + 1'b1;
-//
-// the above gives 0 at time 5
-
-//vs
-
-always @(*) a = a + 1'b1;
-//
-// most simulators give 0 at time 5 as well here (i.e. writes not removed?),
-// however, Synopsys loops forever (never printing anything at time 5)
-
-initial $monitor("a = %b at time %d", a, $time);
+// does not include c
+always_comb begin
+ d = c;
+ c = 0;
+end
 
 endmodule

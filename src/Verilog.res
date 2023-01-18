@@ -242,14 +242,25 @@ let net_type_res = (nt) =>
 
 type net = { type_: net_type, name: var, delay: delay }
 
-type always_type = Always | AlwaysComb // | AlwaysFf // | AlwaysLatch
-type proc_type = ProcAlways(always_type) | ProcInitial | ProcFinal
+type always_type = Always | AlwaysComb | AlwaysFf | AlwaysLatch
+type proc_type = ProcAlways(always_type) | ProcInitial
+
+let is_new_always_type = (at) =>
+ switch at {
+ | Always => false
+ | _ => true
+ }
+
+let is_new_proc_type = (pt) =>
+ switch pt {
+ | ProcAlways(at) => is_new_always_type(at)
+ | _ => false
+ }
 
 let is_repeating_proc_type = (pt) =>
  switch pt {
  | ProcAlways(_) => true
  | ProcInitial => false
- | ProcFinal => false
  }
 
 type proc = { proc_type: proc_type, stmts: array<stmt> }
@@ -258,7 +269,6 @@ let proc_run_at_0 = (t) =>
  switch (t) {
  | ProcAlways(_) => true
  | ProcInitial => true
- | ProcFinal => false
  }
 
 type vmodule = {
@@ -863,15 +873,18 @@ let region_shift = (region, ei) => {
 
 // Entry functions:
 
-let build_proc_state = (p) =>
- switch (p.proc_type) {
+let build_proc_state = (p) => {
  // REF(p. 207): The procedure is automatically triggered once at time zero, after all initial and always
  // procedures have been started so that the outputs of the procedure are consistent with the inputs.
- | ProcAlways(AlwaysComb) => { pc: 1, state: ProcStateRunning } // pc = 1 to skip initial event control
- | ProcAlways(Always) => { pc: 0, state: ProcStateRunning }
- | ProcInitial => { pc: 0, state: ProcStateRunning }
- | ProcFinal => { pc: 0, state: ProcStateWaiting }
+
+ // pc = 1 to skip initial event control
+ let pc = switch (p.proc_type) {
+ | ProcAlways(AlwaysComb) => 1
+ | ProcAlways(AlwaysLatch) => 1
+ | _ => 0
  }
+ { pc: pc, state: ProcStateRunning }
+}
 
 let run_exp_init = (env, eopt) =>
  switch eopt {

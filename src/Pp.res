@@ -113,8 +113,9 @@ let proc_type_str = (t) =>
  switch (t) {
  | ProcAlways(Always) => "always"
  | ProcAlways(AlwaysComb) => "always_comb"
+ | ProcAlways(AlwaysLatch) => "always_latch"
+ | ProcAlways(AlwaysFf) => "always_ff"
  | ProcInitial => "initial"
- | ProcFinal => "final"
  }
 
 let proc_str = (proc_env, p, i) => {

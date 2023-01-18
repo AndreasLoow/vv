@@ -13,6 +13,12 @@ let intersperse = (y, xs) => {
  Js.Array.concatMany(Js.Array.mapi((x, i) => i == last ? [x] : [x, y], xs), [])
 }
 
+let unions = (xs) =>
+ Js.Array.reduce(Belt.Set.String.union, Belt.Set.String.empty, xs)
+
+let sum = (xs) =>
+ Js.Array.reduce((x, y) => x + y, 0, xs)
+
 // Some JS mk_ functions/interop...
 
 let mk_Some = (x) => Some(x)

@@ -66,43 +66,38 @@ let rec reads_star = (s) =>
  | SStmtTimingControl(_, None) => Belt.Set.String.empty
  | SStmtTimingControl(_, Some(s)) => reads_star(s)
  | SStmtAssn(_, _, _, e) => reads_star_exp(e)
- | SStmtDisplay(_, es) => Js.Array.reduce(Belt.Set.String.union, Belt.Set.String.empty, Js.Array.map(reads_star_exp_or_time, es))
- | SStmtMonitor(_, es) => Js.Array.reduce(Belt.Set.String.union, Belt.Set.String.empty, Js.Array.map(reads_star_exp_or_time, es))
+ | SStmtDisplay(_, es) => Utils.unions(Js.Array.map(reads_star_exp_or_time, es))
+ | SStmtMonitor(_, es) => Utils.unions(Js.Array.map(reads_star_exp_or_time, es))
  | SStmtFinish => Belt.Set.String.empty
  | SStmtIf(e, s) => Belt.Set.String.union(reads_star_exp(e), reads_star(s))
- | SStmtIfElse(e, s1, s2) => Belt.Set.String.union(reads_star_exp(e), Belt.Set.String.union(reads_star(s1), reads_star(s2)))
- | SSBlock(ss) => Js.Array.reduce(Belt.Set.String.union, Belt.Set.String.empty, Js.Array.map(reads_star, ss))
+ | SStmtIfElse(e, s1, s2) => Utils.unions([reads_star_exp(e), reads_star(s1), reads_star(s2)])
+ | SSBlock(ss) => Utils.unions(Js.Array.map(reads_star, ss))
  }
 
-// both blocking and nonblocking
-let write_star = (s) =>
+let rec writes_star = (s) =>
  switch s {
+ | SStmtTimingControl(_, _) => Belt.Set.String.empty
  | SStmtAssn(_, var, _, _) => Belt.Set.String.fromArray([var])
- | _ => Belt.Set.String.empty
+ | SStmtDisplay(_, _) => Belt.Set.String.empty
+ | SStmtMonitor(_, _) => Belt.Set.String.empty
+ | SStmtFinish => Belt.Set.String.empty
+ | SStmtIf(_, s) => writes_star(s)
+ | SStmtIfElse(_, s1, s2) => Belt.Set.String.union(writes_star(s1), writes_star(s2))
+ | SSBlock(ss) => Utils.unions(Js.Array.map(writes_star, ss))
  }
 
 let normalise_always_comb = (s) => {
- // NOTE: Order of read vs. writes does not matter, especially for boolean-only vars,
- //       since if write in process no other process is allowed to write to the same var,
- //       so will not cause too many evals (since there's no self-eval)
  let read_vars = reads_star(s)
-
- // TODO:
- //let write_vars = s
- //              |> Js.Array.map(write_star)
- //              |> Js.Array.reduce(Belt.Set.String.union, Belt.Set.String.empty)
- let write_vars = Belt.Set.String.empty
-
+ let write_vars = writes_star(s)
  let vars = Belt.Set.String.removeMany(read_vars, Belt.Set.String.toArray(write_vars))
           |> Belt.Set.String.toArray
           |> Js.Array.map((e) => EEEdge(e))
           |> event_expression_fromArray
-
- // ASSUMPTION: If none, transform to initial (since should be run once), so it's never run after init...
- switch vars {
- | None => (ProcInitial, s)
- | Some(vars) => (ProcAlways(AlwaysComb), SStmtTimingControl(TMEvent(vars), Some(s)))
+ let ee = switch vars {
+  | None => EENever
+  | Some(vars) => vars
  }
+ SStmtTimingControl(TMEvent(ee), Some(s))
 }
 
 let rec preprocess_star = (s) =>
@@ -125,10 +120,36 @@ let rec preprocess_star = (s) =>
  | s => s
 }
 
+// count the number of event controls
+// and die if any blocking timing controls
+let rec num_ec = (s) =>
+ switch s {
+ | SStmtTimingControl(TMDelay(_), _) => raise(CompileError("Time control not allowed inside new-type always"))
+ | SStmtTimingControl(_, _) => 1
+ | SStmtAssn(_, _, Some(_), _) => raise(CompileError("Delayed assignments not allowed inside new-type always"))
+ | SStmtAssn(_, _, _, _) => 0
+ | SStmtDisplay(_, _) => 0
+ | SStmtMonitor(_, _) => 0
+ | SStmtFinish => 0
+ | SStmtIf(_, s) => num_ec(s)
+ | SStmtIfElse(_, s1, s2) => num_ec(s1) + num_ec(s2)
+ | SSBlock(ss) => Utils.sum(Js.Array.map(num_ec, ss))
+}
+
+let validate_proc = (pt, s) => 
+ if pt == ProcAlways(AlwaysComb) || pt == ProcAlways(AlwaysLatch) {
+  num_ec(s) == 0 ? () : raise(CompileError("Event control not allowed inside always_comb/always_latch"))
+ } else if pt == ProcAlways(AlwaysFf) {
+  num_ec(s) == 1 ? () : raise(CompileError("Must be one and one only event control inside always_ff"))
+ } else {
+  ()
+ }
+
 let preprocess_proc = (pt, s) =>
  switch pt {
  | ProcAlways(AlwaysComb) => normalise_always_comb(s)
- | _ => (pt, preprocess_star(s))
+ | ProcAlways(AlwaysLatch) => normalise_always_comb(s)
+ | _ => preprocess_star(s)
 }
 
 // Compiler
@@ -222,11 +243,10 @@ let rec compile_stmt = (s) => {
 let compile_proc_type = (pt) =>
  switch pt {
  | "initial" => ProcInitial
- | "final" => ProcFinal
  | "always" => ProcAlways(Always)
  | "always_comb" => ProcAlways(AlwaysComb)
- | "always_latch" => ProcAlways(Always)
- | "always_ff" => ProcAlways(Always)
+ | "always_latch" => ProcAlways(AlwaysLatch)
+ | "always_ff" => ProcAlways(AlwaysFf)
 }
 
 let compile_top_level = (m, tl) => {
@@ -253,7 +273,8 @@ let compile_top_level = (m, tl) => {
    }
  | TLProc(pt, s) =>
    let pt = compile_proc_type(pt)
-   let (pt, s) = preprocess_proc(pt, s)
+   let _ = validate_proc(pt, s)
+   let s = preprocess_proc(pt, s)
    let ss = compile_stmt(s)
    let proc = { proc_type: pt, stmts: ss }
 
