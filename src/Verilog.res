@@ -917,10 +917,13 @@ let build_state = (m : vmodule) => {
    status: Running,
    env: env,
    // ASSUMPTION: Based on what simulators seem to do, this should be X,
-   //             but I haven't found anything in the standard saying this
+   //             but I haven't found anything in the standard saying this.
+   //             The standard says that unconnected nets should be Z --
+   //             it is unclear what to do here...
    cont_env: Belt.Array.map(m.conts, _ => ValBit(BitX)),
    // ASSUMPTION: Always processes start in running state,
-   //             they have not reached the first wait statement yet.
+   //             they have not reached the first blocking/control
+   //             statement yet.
    proc_env: Belt.Array.map(m.procs, build_proc_state),
    queue: [(0, {...empty_event_queue, active: proc_es})],
    monitor: None,
@@ -929,7 +932,7 @@ let build_state = (m : vmodule) => {
  }
 
 let build_initial_cont_update_event = (s, p, i) => {
-  // TODO: Should we always schedule an event -- even when v is just 'z?
+  // ASSUMPTION: Should we always schedule an event -- even when v is just 'z?
   let v = run_exp(s.env, p.rhs)
   let d = calculate_event_delay(s.vmodule.nets, p.lhs, p.delay)
   let d = delay_value(d, v)

@@ -13,8 +13,6 @@ let make = () => {
 
   // REF: T = 0;
   // REF: initialize the values of all nets and variables;
-  // ASSUMPTION: Nets are initialized to 'z, variables to 'x
-  // CHECK: All initializations are done in declaration order?
   let sinit = build_state(cir)
   // REF: schedule all initialization events into time zero slot;
   let sinit = run_init(sinit)
