@@ -1,4 +1,4 @@
-module init1;
+module var_init1;
 
 // Initialisation of variables is a little trick in
 // Verilog because of its history. That is, different

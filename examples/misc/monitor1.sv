@@ -1,4 +1,4 @@
-module monitor;
+module monitor1;
 
 // Basic $monitor example
 

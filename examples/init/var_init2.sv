@@ -1,4 +1,4 @@
-module init2;
+module var_init2;
 
 // Variables can also be initialised with nonconstants,
 // such as:

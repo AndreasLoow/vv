@@ -1,4 +1,4 @@
-module init3;
+module var_init3;
 
 // The following example is from "Verilog Coding
 // Standard" by Charles Eric LaForest, available at
