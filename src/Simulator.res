@@ -76,7 +76,7 @@ let make = () => {
   })
 
   let cont_env = Belt.Array.mapWithIndex(state.cont_env, (i, v) => {
-   <li key={ Belt.Int.toString(i) }> { React.string(state.vmodule.conts[i].lhs ++ "(" ++ Belt.Int.toString(i) ++ "): " ++ Verilog.value_str(v)) } </li>
+   <li key={ Belt.Int.toString(i) }> { React.string(Belt.Array.getExn(state.vmodule.conts, i).lhs ++ "(" ++ Belt.Int.toString(i) ++ "): " ++ Verilog.value_str(v)) } </li>
   })
 
   let proc_env = Belt.Array.mapWithIndex(state.proc_env, (i, s) => {

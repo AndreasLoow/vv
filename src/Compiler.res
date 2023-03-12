@@ -188,8 +188,8 @@ let dest_ExpVar = (e) =>
 
 let compile_not = (d, decl) => {
  if Js.Array.length(decl) == 2 {
-  let lhs = dest_ExpVar(decl[0]);
-  let rhs = decl[1];
+  let lhs = dest_ExpVar(Belt.Array.getExn(decl, 0));
+  let rhs = Belt.Array.getExn(decl, 1);
   { lhs: lhs, delay: d, rhs: rhs }
  } else {
   raise(CompileError("Expected two arguments to not gate"))
@@ -207,8 +207,8 @@ let gate_to_op2 = (g) =>
 
 let compile_op2 = (op2, d, decl) => {
  if Js.Array.length(decl) == 3 {
-  let lhs = dest_ExpVar(decl[0]);
-  let rhs = ExpOp2(decl[1], op2, decl[2]);
+  let lhs = dest_ExpVar(Belt.Array.getExn(decl, 0));
+  let rhs = ExpOp2(Belt.Array.getExn(decl, 1), op2, Belt.Array.getExn(decl, 2));
   { lhs: lhs, delay: d, rhs: rhs }
  } else {
   raise(CompileError("Expected three arguments to gate"))
@@ -218,8 +218,8 @@ let compile_op2 = (op2, d, decl) => {
 // No built-in operator for nor
 let compile_nor = (d, decl) => {
  if Js.Array.length(decl) == 3 {
-  let lhs = dest_ExpVar(decl[0]);
-  let rhs = ExpNot(ExpOp2(decl[1], BOr, decl[2]));
+  let lhs = dest_ExpVar(Belt.Array.getExn(decl, 0));
+  let rhs = ExpNot(ExpOp2(Belt.Array.getExn(decl, 1), BOr, Belt.Array.getExn(decl, 2)));
   { lhs: lhs, delay: d, rhs: rhs }
  } else {
   raise(CompileError("Expected three arguments to gate"))

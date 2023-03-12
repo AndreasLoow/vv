@@ -494,7 +494,7 @@ let calculate_event_delay = (nets, netname, delay) => {
 // maxtime just a micro-optimization telling us how far into the future we need to look;
 // made everything very ugly since re-script does not have break/return...
 // microoptimization should probably just be removed...
-let find_queued_update = (queue, maxtime, driver_i) => {
+let find_queued_update = (queue : array<(int, event_queue)>, maxtime, driver_i) => {
  let break = ref(false)
  let i = ref(0)
 
@@ -509,7 +509,7 @@ let find_queued_update = (queue, maxtime, driver_i) => {
   }
 
  while !break.contents && i.contents < Js.Array.length(queue) {
-  let (time, q) = queue[i.contents]
+  let (time, q) = Belt.Array.getExn(queue, i.contents)
 
   if time > maxtime {
     break := true
@@ -559,8 +559,8 @@ let add_event = (queue, t, time, e) => {
  if i == -1 {
   let q = region_set(empty_event_queue, t, [e])
   Js.Array2.concat(queue, [(time, q)])
- } else if fst(queue[i]) == time {
-  let q = snd(queue[i])
+ } else if fst(Belt.Array.getExn(queue, i)) == time {
+  let q = snd(Belt.Array.getExn(queue, i))
   let region = Js.Array2.concat(region_get(q, t), [e])
   let q = region_set(q, t, region)
   let queue = Js.Array.copy(queue)
@@ -599,7 +599,7 @@ let run_listeners = (s, contI, var, oldv, newv) => {
   let updates = Js.Array.map(((c : cont, i)) => (c.delay, (i, run_exp(s.env, c.rhs))), updates)
 
   let replace_update_event = (queue, (delay, (i, v))) => {
-    let delay = calculate_event_delay(s.vmodule.nets, s.vmodule.conts[i].lhs, delay)
+    let delay = calculate_event_delay(s.vmodule.nets, Belt.Array.getExn(s.vmodule.conts, i).lhs, delay)
     // ASSUMPTION: The "to value" is the new value of the driver, not the new value (= result of resolution function)
     //             of the net.
     let d = delay_value(delay, v)
@@ -608,7 +608,7 @@ let run_listeners = (s, contI, var, oldv, newv) => {
     let queue = switch find_queued_update(queue, s.time + md, i) {
                 | None => queue
                 | Some((qqi, qi)) =>
-                  let (time, q) = queue[qqi]
+                  let (time, q) = Belt.Array.getExn(queue, qqi)
                   let active = Js.Array.copy(q.active)
                   let _ = Js.Array2.spliceInPlace(active, ~pos=qi, ~remove=1, ~add=[])
 
@@ -632,20 +632,20 @@ let run_listeners = (s, contI, var, oldv, newv) => {
    s.proc_env
    |> Js.Array.mapi((ps, i) => (ps, i))
    |> Js.Array.filter(((ps, i)) => ps.state == ProcStateWaiting &&
-                                   tm_is_sensitive_to(s.vmodule.procs[i].stmts[ps.pc], var, oldv, newv))
+                                   tm_is_sensitive_to(Belt.Array.getExn(Belt.Array.getExn(s.vmodule.procs, i).stmts, ps.pc), var, oldv, newv))
 
   // todo: this is inefficient... what if nothing has changed...
   let proc_env = Js.Array.copy(s.proc_env)
 
   for i in 0 to (Js.Array.length(toactivate)-1) {
-   let (ps, j) = toactivate[i]
-   let ps = proc_inc_pc(s.vmodule.procs[j], ps)
+   let (ps, j) = Belt.Array.getExn(toactivate, i)
+   let ps = proc_inc_pc(Belt.Array.getExn(s.vmodule.procs, j), ps)
 
    let _ = Belt.Array.setExn(proc_env, j, ps)
   }
 
   let newevents = Js.Array.map(((_, i)) => EventEvaluation(next_event_id(), i), toactivate)
-  let (ts, queue0) = queue[0]
+  let (ts, queue0) = Belt.Array.getExn(queue, 0)
   let active = Js.Array2.concat(queue0.active, newevents)
   let queue0 = {...queue0, active: active}
   let _ = Belt.Array.setExn(queue, 0, (ts, queue0))
@@ -667,8 +667,8 @@ let is_if_true = (ValBit(b)) =>
 
 let step_proc_goto = (s, i, jump) => {
  let proc_env = Js.Array.copy(s.proc_env)
- let ps = proc_env[i]
- let p = s.vmodule.procs[i]
+ let ps = Belt.Array.getExn(proc_env, i)
+ let p = Belt.Array.getExn(s.vmodule.procs, i)
 
  let newpc = ps.pc + jump
 
@@ -707,10 +707,10 @@ let format = (str, vs) => {
    let c = Js.String.get(str, i.contents)
 
    if c == "b" {
-    buf := Js.String2.concat(buf.contents, value_or_time_str_value(vs[vsi.contents]))
+    buf := Js.String2.concat(buf.contents, value_or_time_str_value(Belt.Array.getExn(vs, vsi.contents)))
     vsi := vsi.contents + 1
    } else if c == "d" {
-    buf := Js.String2.concat(buf.contents, value_or_time_str_time(vs[vsi.contents]))
+    buf := Js.String2.concat(buf.contents, value_or_time_str_time(Belt.Array.getExn(vs, vsi.contents)))
     vsi := vsi.contents + 1
    } else {
     Js.Exn.raiseError("unsupported format")
@@ -753,10 +753,10 @@ let run_display = (s, str, es, prev) => {
 }
 
 let step_proc = (s, i) => {
- let p = s.vmodule.procs[i]
- let ps = s.proc_env[i]
+ let p = Belt.Array.getExn(s.vmodule.procs, i)
+ let ps = Belt.Array.getExn(s.proc_env, i)
 
- switch p.stmts[ps.pc] {
+ switch Belt.Array.getExn(p.stmts,ps.pc) {
  | StmtTimingControl(TMDelay(delay)) => {
    let ps = proc_inc_pc(p, ps)
    let ps = {...ps, state: ProcStateBlocked}
@@ -858,7 +858,7 @@ let steps_proc = (s, i) => {
 
  while fuel.contents < 100 &&
        sref.contents.status == Running &&
-       sref.contents.proc_env[i].state == ProcStateRunning {
+       Belt.Array.getExn(sref.contents.proc_env, i).state == ProcStateRunning {
    fuel := fuel.contents + 1
 
    sref := step_proc(sref.contents, i)
@@ -870,7 +870,7 @@ let steps_proc = (s, i) => {
 }
 
 let region_shift = (region, ei) => {
- let e = region[ei]
+ let e = Belt.Array.getExn(region, ei)
  switch e {
  | Events(_, [_]) =>
    let _ = Js.Array2.spliceInPlace(region, ~pos=ei, ~remove=1, ~add=[])
@@ -960,7 +960,7 @@ let event_active = (s, time) => {
 // run active event nr. ei
 let run_event = (s:state, ei:int) => {
  // remove run event
- let (ts, queue0) = s.queue[0]
+ let (ts, queue0) = Belt.Array.getExn(s.queue, 0)
  let active = Js.Array.copy(queue0.active)
  let e = Belt.Array.getExn(active, ei)
  let _ = region_shift(active, ei)
@@ -991,7 +991,7 @@ let run_event = (s:state, ei:int) => {
    s
 
  | EventEvaluation(_, i) =>
-   let ps = s.proc_env[i]
+   let ps = Belt.Array.getExn(s.proc_env, i)
    let ps = {...ps, state: ProcStateRunning}
    let proc_env = Js.Array.copy(s.proc_env)
    let _ = Belt.Array.setExn(proc_env, i, ps)
@@ -1003,8 +1003,8 @@ let run_event = (s:state, ei:int) => {
    let oldv = Belt.Map.String.getExn(s.env, var)
    let env = Belt.Map.String.set(s.env, var, newv)
 
-   let ps = s.proc_env[i]
-   let p = s.vmodule.procs[i]
+   let ps = Belt.Array.getExn(s.proc_env, i)
+   let p = Belt.Array.getExn(s.vmodule.procs, i)
    let ps = proc_inc_pc(p, ps)
    let proc_env = Js.Array.copy(s.proc_env)
    let _ = Belt.Array.setExn(proc_env, i, ps)
@@ -1032,7 +1032,7 @@ let run_event = (s:state, ei:int) => {
 
 let inactive_done_active = (s) => {
  if s.status == Running {
-  let (_, queue0) = s.queue[0]
+  let (_, queue0) = Belt.Array.getExn(s.queue, 0)
   queue0.active == [] &&
   queue0.inactive != []
  } else {
@@ -1042,7 +1042,7 @@ let inactive_done_active = (s) => {
 
 // Precondition: inactive_done_active must be true
 let run_inactive_done = (s) => {
- let (_, queue0) = s.queue[0]
+ let (_, queue0) = Belt.Array.getExn(s.queue, 0)
 
  let queue0 = {...queue0, active: queue0.inactive, inactive: []}
  let queue = Js.Array.copy(s.queue)
@@ -1052,7 +1052,7 @@ let run_inactive_done = (s) => {
 
 let nba_done_active = (s) => {
  if s.status == Running {
-  let (_, queue0) = s.queue[0]
+  let (_, queue0) = Belt.Array.getExn(s.queue, 0)
   queue0.active == [] &&
   queue0.inactive == [] &&
   queue0.nba != []
@@ -1063,7 +1063,7 @@ let nba_done_active = (s) => {
 
 // Precondition: nba_done_active must be true
 let run_nba_done = (s) => {
- let (_, queue0) = s.queue[0]
+ let (_, queue0) = Belt.Array.getExn(s.queue, 0)
 
  let e = Events(next_event_id(), queue0.nba)
  let queue0 = {...queue0, active: Js.Array2.concat(queue0.active, [e]), nba: []}
@@ -1079,7 +1079,7 @@ let time_active = (s) => {
   if len == 0 {
    Js.Exn.raiseError("impossible")
   } else {
-   let region = snd(s.queue[0])
+   let region = snd(Belt.Array.getExn(s.queue, 0))
    region.active == [] && region.inactive == [] && region.nba == []
   }
  } else {
@@ -1104,7 +1104,7 @@ let run_time = (s) => {
  if Js.Array.length(queue) == 0 {
   {...s, queue: queue, status: Finished}
  } else {
-  let (time, _) = queue[0]
+  let (time, _) = Belt.Array.getExn(queue, 0)
   {...s, queue: queue, time: time}
  }
 }

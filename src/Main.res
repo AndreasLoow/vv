@@ -1,4 +1,8 @@
-ReactDOM.render(
-  <React.StrictMode> <Simulator /> </React.StrictMode>,
-  ReactDOM.querySelector("#root")->Belt.Option.getExn,
+ReactDOM.querySelector("#root")
+->Option.getExn
+->ReactDOM.Client.createRoot
+->ReactDOM.Client.Root.render(
+ <React.StrictMode>
+  <Simulator />
+ </React.StrictMode>,
 )

@@ -18,15 +18,19 @@
     }
   ],
   "suffix": ".bs.js",
-  "reason": {
-    "react-jsx": 3
+  "jsx": {
+    "version": 4,
+    "mode": "automatic"
   },
   "bs-dependencies": [
     "@rescript/react",
-    "@ryyppy/rescript-promise",
+    "@rescript/core",
     "rescript-webapi"
   ],
   "bs-dev-dependencies": [
     "rescript-vitest"
+  ],
+  "bsc-flags": [
+    "-open RescriptCore"
   ]
 }

@@ -123,7 +123,7 @@ let proc_str = (proc_env, p, i) => {
  let es = Js.Array.concatMany(
           [[<span className="comment"> { React.string("// Process " ++ Belt.Int.toString(i + 1)) } </span>,
             React.string("\n" ++ proc_type_str(p.proc_type)), React.string(" begin\n")],
-           stmts_str(if proc_env[i].state == ProcStateFinished { -1 } else { proc_env[i].pc }, p.stmts),
+           stmts_str(if Belt.Array.getExn(proc_env, i).state == ProcStateFinished { -1 } else { Belt.Array.getExn(proc_env, i).pc }, p.stmts),
            [React.string("\nend")]], [])
  React.array(dummy_fragments(es))
 }
@@ -144,7 +144,7 @@ let event_nba_str = (e) =>
 
 let event_str = (ps, e) => {
  switch e {
- | EventContUpdate(_, i, v) => React.string("update(" ++ ps[i].lhs ++ "(" ++ Belt.Int.toString(i) ++ ")): " ++ value_str(v))
+ | EventContUpdate(_, i, v) => React.string("update(" ++ Belt.Array.getExn(ps, i).lhs ++ "(" ++ Belt.Int.toString(i) ++ ")): " ++ value_str(v))
  | EventBlockUpdate(_, i, var, v) => React.string("eval(cont: " ++ Belt.Int.toString(i + 1) ++ ", " ++ var ++ " = " ++ value_str(v) ++ ")")
  | EventEvaluation(_, i) => React.string("eval(proc: " ++ Belt.Int.toString(i + 1) ++ ")")
  | EventNBA(_, var, v) => React.string("nba(" ++ var ++ " <= " ++ value_str(v) ++ ")")
