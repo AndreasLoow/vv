@@ -17,7 +17,7 @@
       "in-source": true
     }
   ],
-  "suffix": ".bs.js",
+  "suffix": ".mjs",
   "jsx": {
     "version": 4,
     "mode": "automatic"

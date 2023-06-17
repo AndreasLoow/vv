@@ -1,12 +1,12 @@
-import * as Utils from './Utils.bs.js';
-import * as Bit from './Bit.bs.js';
-import * as Verilog from './Verilog.bs.js';
-import * as Compiler from './Compiler.bs.js';
+import * as Utils from './Utils.mjs';
+import * as Bit from './Bit.mjs';
+import * as Verilog from './Verilog.mjs';
+import * as Compiler from './Compiler.mjs';
 
 // timing handling in Stmt should result in "shift-reduce conflict"?
 const verilogGrammar = ohm.grammar(String.raw`
   verilogGrammar {
-    Module = "module" id ";" Top* "endmodule"
+    Module = "module" id ("(" ")")? ";" Top* "endmodule"
 
     ProcType = "initial" | "always_comb" | "always_latch" | "always_ff" | "always"
 
@@ -118,7 +118,7 @@ const verilogGrammar = ohm.grammar(String.raw`
 
 const t = verilogGrammar.createSemantics();
 t.addOperation('translate', {
-    Module(_1, _2, _3, ss, _4) { return ss.children.map(c => c.translate()); },
+    Module(_1, _2, _3, _4, _5, ss, _6) { return ss.children.map(c => c.translate()); },
 
     Decl_no_init(lhs) { return Compiler.mk_pair(lhs.translate(), Utils.mk_None); },
     Decl_init(lhs, _, rhs) { return Compiler.mk_pair(lhs.translate(), Utils.mk_Some(rhs.translate())); },
