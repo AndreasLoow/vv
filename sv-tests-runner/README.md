@@ -6,7 +6,7 @@ The runner needs a local copy of ohm (for parsing):
 npm install ohm-js
 ```
 
-Now, copy the file `../src/parser.mjs` to this directory and add the following import:
+Now, copy the file `../src/parser.mjs` to this directory, modify the paths for the imports, and add the following import:
 
 ```
 import * as ohm from 'ohm-js';
@@ -22,4 +22,4 @@ node "$HOME"/path/to/the/script/sv-tests-runner.js "$@"
 
 Lastly, copy `vv.py` to the `tools/runners` directory in your local copy of `sv-tests`.
 
-You can now run the test suite.
+You can now run the test suite (e.g., `RUNNERS_FILTER=vv make -j9`).
