@@ -134,7 +134,7 @@ let make = () => {
    <button onClick={ handle_parse }>{React.string("Parse")}</button>
    </div>
   </td>
-  <td><div id="code-render">{ Pp.vmodule_str(state.vmodule, state.proc_env) }</div></td>
+  <td><p id="code-render-title">{ React.string("Normalised Verilog module:") }</p><div id="code-render">{ Pp.vmodule_str(state.vmodule, state.proc_env) }</div></td>
   <td>
    <p id="simulation-time" onClick={ handle_time } className={ className_wrapper(time_active(state)) }>{ time }</p>
 
