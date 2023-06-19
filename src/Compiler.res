@@ -1,5 +1,6 @@
 open Verilog
 
+exception TypeCheckError(string)
 exception CompileError(string)
 
 type rec stmt_structured =
@@ -24,7 +25,7 @@ let mk_SSBlock = (ss) => SSBlock(ss)
 
 type top_level =
  | TLVars(array<(string, option<exp>)>)
- | TLNets(string, delay, array<string>)
+ | TLNets(string, delay, array<(string, option<exp>)>)
  | TLGates(string, delay, array<array<exp>>)
  | TLCont(string, delay, exp)
  | TLProc(string, stmt_structured)
@@ -44,6 +45,106 @@ type parse_result =
 // JS API
 let mk_ParseOk = (ss) => ParseOk(ss)
 let mk_ParseFail = (err) => ParseFail(err)
+
+// Quick type checker just to check that we are not referring to undeclared vars/nets
+
+let dest_ExpVar = (e) =>
+ switch e {
+ | ExpVar(var) => var
+ | _ => raise(CompileError("Expected variable, found: " ++ Pp.exp_str(e)))
+}
+
+type ttype = TVar | TNet
+
+let tcheck_decl = (tenv, var) =>
+ if (Belt.Map.String.has(tenv, var)) {
+  ()
+ } else {
+  raise(TypeCheckError("Undefined reference: " ++ var))
+ }
+
+let tcheck_var = (tenv, var) =>
+ switch (Belt.Map.String.get(tenv, var)) {
+ | Some(TVar) => ()
+ | _ => raise(TypeCheckError("Undefined var: " ++ var))
+}
+
+let tcheck_net = (tenv, net) =>
+ switch (Belt.Map.String.get(tenv, net)) {
+ | Some(TNet) => ()
+ | _ => raise(TypeCheckError("Undefined net: " ++ net))
+}
+
+let rec tcheck_exp = (tenv, e) =>
+ switch (e) {
+ | ExpVal(_) => ()
+ | ExpVar(var) => tcheck_decl(tenv, var)
+ | ExpNot(e) => tcheck_exp(tenv, e)
+ | ExpOp2(e1, _, e2) => Js.Array.forEach(tcheck_exp(tenv), [e1, e2])
+ | ExpCond(e1, e2, e3) => Js.Array.forEach(tcheck_exp(tenv), [e1, e2, e3])
+}
+
+let rec tcheck_event_expression = (tenv, ee) =>
+ switch (ee) {
+ | EEPos(var) => tcheck_decl(tenv, var)
+ | EENeg(var) => tcheck_decl(tenv, var)
+ | EEEdge(var) => tcheck_decl(tenv, var)
+ | EENever => ()
+ | EEOr(ee1, ee2) => Js.Array.forEach(tcheck_event_expression(tenv), [ee1, ee2])
+}
+
+let check_timing_control = (tenv, tc) =>
+ switch (tc) {
+ | TMDelay(_) => ()
+ | TMEvent(ee) => tcheck_event_expression(tenv, ee)
+ | TMStar => ()
+}
+
+let tcheck_exp_or_time = (tenv, e) =>
+ switch (e) {
+ | ETExp(e) => tcheck_exp(tenv, e)
+ | ETTime => ()
+}
+
+let tcheck_add_decl = (ttype, tenv, (name, e)) =>
+ if (Belt.Map.String.has(tenv, name)) {
+  raise(TypeCheckError("Name collision: " ++ name))
+ } else {
+  Utils.option_forEach(e, tcheck_exp(tenv))
+  Belt.Map.String.set(tenv, name, ttype)
+}
+
+let rec tcheck_stmt = (tenv, s) =>
+ switch s {
+ | SStmtTimingControl(tc, s) => check_timing_control(tenv, tc); Utils.option_forEach(s, tcheck_stmt(tenv))
+ | SStmtAssn(_, var, _, e) => tcheck_var(tenv, var); tcheck_exp(tenv, e)
+ | SStmtDisplay(_, es) => Js.Array.forEach(tcheck_exp_or_time(tenv), es)
+ | SStmtMonitor(_, es) => Js.Array.forEach(tcheck_exp_or_time(tenv), es)
+ | SStmtFinish => ()
+ | SStmtIf(e, s) => tcheck_exp(tenv, e); tcheck_stmt(tenv, s)
+ | SStmtIfElse(e, s1, s2) => tcheck_exp(tenv, e); Js.Array.forEach(tcheck_stmt(tenv), [s1, s2])
+ | SSBlock(ss) => Js.Array.forEach(tcheck_stmt(tenv), ss)
+}
+
+let tcheck_gate = (tenv, es) =>
+ if Js.Array.length(es) > 0 {
+  // assigned-to must be net
+  let lhs = dest_ExpVar(Belt.Array.getExn(es, 0))
+  tcheck_net(tenv, lhs)
+
+  Js.Array.forEach(tcheck_exp(tenv), es)
+ } else {
+  ()
+ }
+
+let tcheck_top_level = (tenv, tl) =>
+ switch (tl) {
+ | TLVars(ds) => Js.Array.reduce(tcheck_add_decl(TVar), tenv, ds)
+ | TLNets(_, _, ds) => Js.Array.reduce(tcheck_add_decl(TNet), tenv, ds)
+ | TLCont(lhs, _, rhs) => tcheck_net(tenv, lhs); tcheck_exp(tenv, rhs); tenv
+ | TLGates(_, _, ds) => Js.Array.forEach(tcheck_gate(tenv), ds); tenv
+ | TLProc(_, ss) => tcheck_stmt(tenv, ss); tenv
+}
 
 // Preprocessing
 
@@ -159,7 +260,7 @@ let compile_var = ((lhs, rhs)) => {
  { target: lhs, init: rhs }
 }
 
-let compile_net = (nt, d, var) => {
+let compile_net = (nt, d, (var, rhs)) => {
  let nt = switch nt {
  | "wire"   => NetTypeWire
  | "tri"    => NetTypeWire
@@ -173,18 +274,14 @@ let compile_net = (nt, d, var) => {
  | _ => Js.Exn.raiseError("impossible net type")
  }
 
- { type_: nt, name: var, delay: d }
+ let cont = Belt.Option.map(rhs, rhs => { lhs: var, delay: Delay0, rhs: rhs })
+
+ ({ type_: nt, name: var, delay: d }, cont)
 }
 
 let compile_cont = (lhs, d, rhs) => {
  { lhs: lhs, delay: d, rhs: rhs }
 }
-
-let dest_ExpVar = (e) =>
- switch e {
- | ExpVar(var) => var
- | _ => raise(CompileError("Expected variable, found: " ++ Pp.exp_str(e)))
- }
 
 let compile_not = (d, decl) => {
  if Js.Array.length(decl) == 2 {
@@ -268,8 +365,9 @@ let compile_top_level = (m, tl) => {
    let vars = Js.Array.map(compile_var, ds)
    {...m, vars: Js.Array2.concat(m.vars, vars)}
  | TLNets(nt, d, ds) =>
-   let nets = Js.Array.map(compile_net(nt, d), ds)
-   {...m, nets: Js.Array2.concat(m.nets, nets)}
+   let (nets, conts) = Belt.Array.unzip(Js.Array.map(compile_net(nt, d), ds))
+   let conts = Js.Array.map(Belt.Option.getExn, Js.Array.filter(Belt.Option.isSome, conts))
+   {...m, nets: Js.Array2.concat(m.nets, nets), conts: Js.Array2.concat(m.conts, conts)}
  | TLCont(lhs, d, rhs) =>
    let cont = compile_cont(lhs, d, rhs)
    {...m, conts: Js.Array2.concat(m.conts, [cont])}
@@ -301,6 +399,8 @@ let compile_top_level = (m, tl) => {
 // Top-level entry
 
 let compile = (ss) => {
+ let _ = Js.Array.reduce(tcheck_top_level, Belt.Map.String.empty, ss)
+
  let m = {vars: [], nets: [], conts: [], procs: []}
  let m = Js.Array.reduce(compile_top_level, m, ss)
  m

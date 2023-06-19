@@ -50,7 +50,8 @@ let make = () => {
      | s =>
        let s = run_init(s)
        setState(_ => s)
-     | exception CompileError(msg) => alert("Compile phase of parsing failed: " ++ msg)
+     | exception TypeCheckError(msg) => alert("Type checking failed: " ++ msg)
+     | exception CompileError(msg) => alert("Compilation failed: " ++ msg)
      }
    | ParseFail(err) =>
      //Js.log(err)

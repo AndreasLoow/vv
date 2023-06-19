@@ -19,6 +19,12 @@ let unions = (xs) =>
 let sum = (xs) =>
  Js.Array.reduce((x, y) => x + y, 0, xs)
 
+let option_forEach = (opt, f) =>
+ switch (opt) {
+ | None => ()
+ | Some(x) => f(x)
+ }
+
 // Some JS mk_ functions/interop...
 
 let mk_Some = (x) => Some(x)

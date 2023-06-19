@@ -17,8 +17,8 @@ const verilogGrammar = ohm.grammar(String.raw`
 
     Top = type NonemptyListOf<Decl, ","> ";" -- decl
 
-        | WireType NonemptyListOf<id, ","> ";" -- net
-        | WireType Delay NonemptyListOf<id, ","> ";" -- net_delay
+        | WireType NonemptyListOf<Decl, ","> ";" -- net
+        | WireType Delay NonemptyListOf<Decl, ","> ";" -- net_delay
 
         | "assign" id "=" Exp ";" -- cont
         | "assign" Delay id "=" Exp ";" -- cont_delay
