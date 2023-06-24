@@ -1,260 +1,15 @@
-open Verilog
+/* Compiler from AstParse to Ast */
 
-exception TypeCheckError(string)
+open Ast
+open AstParse
+
 exception CompileError(string)
-
-type rec stmt_structured =
- | SStmtTimingControl(timing_control, option<stmt_structured>)
- | SStmtAssn(assn_type, var, option<delay>, exp)
- | SStmtDisplay(string, array<exp_or_time>)
- | SStmtMonitor(string, array<exp_or_time>)
- | SStmtFinish
- | SStmtIf(exp, stmt_structured)
- | SStmtIfElse(exp, stmt_structured, stmt_structured)
- | SSBlock(array<stmt_structured>)
-
-// JS API
-let mk_SStmtTimingControl = (tc, opts) => SStmtTimingControl(tc, opts)
-let mk_SStmtAssn = (at, v, d, e) => SStmtAssn(at, v, d, e)
-let mk_SStmtDisplay = (str, es) => SStmtDisplay(str, es)
-let mk_SStmtMonitor = (str, es) => SStmtMonitor(str, es)
-let mk_SStmtFinish = SStmtFinish
-let mk_SStmtIf = (ec, st) => SStmtIf(ec, st)
-let mk_SStmtIfElse = (ec, st, sf) => SStmtIfElse(ec, st, sf)
-let mk_SSBlock = (ss) => SSBlock(ss)
-
-type top_level =
- | TLVars(array<(string, option<exp>)>)
- | TLNets(string, delay, array<(string, option<exp>)>)
- | TLGates(string, delay, array<array<exp>>)
- | TLCont(string, delay, exp)
- | TLProc(string, stmt_structured)
-
-// JS API
-let mk_pair = (x1, x2) => (x1, x2)
-let mk_TLVars = (ds) => TLVars(ds)
-let mk_TLNets = (nt, d, ds) => TLNets(nt, d, ds)
-let mk_TLCont = (e1, d, e2) => TLCont(e1, d, e2)
-let mk_TLGates = (g, d, ds) => TLGates(g, d, ds)
-let mk_TLProc = (pt, s) => TLProc(pt, s)
-
-type parse_result =
- | ParseOk(array<top_level>)
- | ParseFail(string)
-
-// JS API
-let mk_ParseOk = (ss) => ParseOk(ss)
-let mk_ParseFail = (err) => ParseFail(err)
-
-// Quick type checker just to check that we are not referring to undeclared vars/nets
 
 let dest_ExpVar = (e) =>
  switch e {
  | ExpVar(var) => var
  | _ => raise(CompileError("Expected variable, found: " ++ Pp.exp_str(e)))
 }
-
-type ttype = TVar | TNet
-
-let tcheck_decl = (tenv, var) =>
- if (Belt.Map.String.has(tenv, var)) {
-  ()
- } else {
-  raise(TypeCheckError("Undefined reference: " ++ var))
- }
-
-let tcheck_var = (tenv, var) =>
- switch (Belt.Map.String.get(tenv, var)) {
- | Some(TVar) => ()
- | _ => raise(TypeCheckError("Undefined var: " ++ var))
-}
-
-let tcheck_net = (tenv, net) =>
- switch (Belt.Map.String.get(tenv, net)) {
- | Some(TNet) => ()
- | _ => raise(TypeCheckError("Undefined net: " ++ net))
-}
-
-let rec tcheck_exp = (tenv, e) =>
- switch (e) {
- | ExpVal(_) => ()
- | ExpVar(var) => tcheck_decl(tenv, var)
- | ExpNot(e) => tcheck_exp(tenv, e)
- | ExpOp2(e1, _, e2) => Js.Array.forEach(tcheck_exp(tenv), [e1, e2])
- | ExpCond(e1, e2, e3) => Js.Array.forEach(tcheck_exp(tenv), [e1, e2, e3])
-}
-
-let rec tcheck_event_expression = (tenv, ee) =>
- switch (ee) {
- | EEPos(var) => tcheck_decl(tenv, var)
- | EENeg(var) => tcheck_decl(tenv, var)
- | EEEdge(var) => tcheck_decl(tenv, var)
- | EENever => ()
- | EEOr(ee1, ee2) => Js.Array.forEach(tcheck_event_expression(tenv), [ee1, ee2])
-}
-
-let check_timing_control = (tenv, tc) =>
- switch (tc) {
- | TMDelay(_) => ()
- | TMEvent(ee) => tcheck_event_expression(tenv, ee)
- | TMStar => ()
-}
-
-let tcheck_exp_or_time = (tenv, e) =>
- switch (e) {
- | ETExp(e) => tcheck_exp(tenv, e)
- | ETTime => ()
-}
-
-let tcheck_add_decl = (ttype, tenv, (name, e)) =>
- if (Belt.Map.String.has(tenv, name)) {
-  raise(TypeCheckError("Name collision: " ++ name))
- } else {
-  Utils.option_forEach(e, tcheck_exp(tenv))
-  Belt.Map.String.set(tenv, name, ttype)
-}
-
-let rec tcheck_stmt = (tenv, s) =>
- switch s {
- | SStmtTimingControl(tc, s) => check_timing_control(tenv, tc); Utils.option_forEach(s, tcheck_stmt(tenv))
- | SStmtAssn(_, var, _, e) => tcheck_var(tenv, var); tcheck_exp(tenv, e)
- | SStmtDisplay(_, es) => Js.Array.forEach(tcheck_exp_or_time(tenv), es)
- | SStmtMonitor(_, es) => Js.Array.forEach(tcheck_exp_or_time(tenv), es)
- | SStmtFinish => ()
- | SStmtIf(e, s) => tcheck_exp(tenv, e); tcheck_stmt(tenv, s)
- | SStmtIfElse(e, s1, s2) => tcheck_exp(tenv, e); Js.Array.forEach(tcheck_stmt(tenv), [s1, s2])
- | SSBlock(ss) => Js.Array.forEach(tcheck_stmt(tenv), ss)
-}
-
-let tcheck_gate = (tenv, es) =>
- if Js.Array.length(es) > 0 {
-  // assigned-to must be net
-  let lhs = dest_ExpVar(Belt.Array.getExn(es, 0))
-  tcheck_net(tenv, lhs)
-
-  Js.Array.forEach(tcheck_exp(tenv), es)
- } else {
-  ()
- }
-
-let tcheck_top_level = (tenv, tl) =>
- switch (tl) {
- | TLVars(ds) => Js.Array.reduce(tcheck_add_decl(TVar), tenv, ds)
- | TLNets(_, _, ds) => Js.Array.reduce(tcheck_add_decl(TNet), tenv, ds)
- | TLCont(lhs, _, rhs) => tcheck_net(tenv, lhs); tcheck_exp(tenv, rhs); tenv
- | TLGates(_, _, ds) => Js.Array.forEach(tcheck_gate(tenv), ds); tenv
- | TLProc(_, ss) => tcheck_stmt(tenv, ss); tenv
-}
-
-// Preprocessing
-
-let rec reads_star_exp = (e) =>
- switch (e) {
- | ExpVal(_) => Belt.Set.String.empty
- | ExpVar(var) => Belt.Set.String.fromArray([var])
- | ExpNot(e) => reads_star_exp(e)
- | ExpOp2(e1, _, e2) => Belt.Set.String.union(reads_star_exp(e1), reads_star_exp(e2))
- | ExpCond(e1, e2, e3) => Utils.unions([reads_star_exp(e1), reads_star_exp(e2), reads_star_exp(e3)])
-}
-
-let reads_star_exp_or_time = (e) =>
- switch (e) {
- | ETExp(e) => reads_star_exp(e)
- | ETTime => Belt.Set.String.empty
-}
-
-let rec reads_star = (s) =>
- switch s {
- | SStmtTimingControl(_, None) => Belt.Set.String.empty
- | SStmtTimingControl(_, Some(s)) => reads_star(s)
- | SStmtAssn(_, _, _, e) => reads_star_exp(e)
- | SStmtDisplay(_, es) => Utils.unions(Js.Array.map(reads_star_exp_or_time, es))
- | SStmtMonitor(_, es) => Utils.unions(Js.Array.map(reads_star_exp_or_time, es))
- | SStmtFinish => Belt.Set.String.empty
- | SStmtIf(e, s) => Belt.Set.String.union(reads_star_exp(e), reads_star(s))
- | SStmtIfElse(e, s1, s2) => Utils.unions([reads_star_exp(e), reads_star(s1), reads_star(s2)])
- | SSBlock(ss) => Utils.unions(Js.Array.map(reads_star, ss))
- }
-
-let rec writes_star = (s) =>
- switch s {
- | SStmtTimingControl(_, _) => Belt.Set.String.empty
- | SStmtAssn(_, var, _, _) => Belt.Set.String.fromArray([var])
- | SStmtDisplay(_, _) => Belt.Set.String.empty
- | SStmtMonitor(_, _) => Belt.Set.String.empty
- | SStmtFinish => Belt.Set.String.empty
- | SStmtIf(_, s) => writes_star(s)
- | SStmtIfElse(_, s1, s2) => Belt.Set.String.union(writes_star(s1), writes_star(s2))
- | SSBlock(ss) => Utils.unions(Js.Array.map(writes_star, ss))
- }
-
-let normalise_always_comb = (s) => {
- let read_vars = reads_star(s)
- let write_vars = writes_star(s)
- let vars = Belt.Set.String.removeMany(read_vars, Belt.Set.String.toArray(write_vars))
-          |> Belt.Set.String.toArray
-          |> Js.Array.map((e) => EEEdge(e))
-          |> event_expression_fromArray
- let ee = switch vars {
-  | None => EENever
-  | Some(vars) => vars
- }
- SStmtTimingControl(TMEvent(ee), Some(s))
-}
-
-let rec preprocess_star = (s) =>
- switch s {
- | SStmtTimingControl(TMStar, None) => SStmtTimingControl(TMEvent(EENever), None)
- | SStmtTimingControl(TMStar, Some(s)) =>
-    let s = preprocess_star(s)
-    let ee = reads_star(s)
-           |> Belt.Set.String.toArray
-           |> Js.Array.map((e) => EEEdge(e))
-           |> event_expression_fromArray
-    let ee = switch ee {
-             | None => EENever
-             | Some(ee) => ee
-             }
-    SStmtTimingControl(TMEvent(ee), Some(s))
- | SStmtIf(e, s) => SStmtIf(e, preprocess_star(s))
- | SStmtIfElse(e, s1, s2) => SStmtIfElse(e, preprocess_star(s1), preprocess_star(s2))
- | SSBlock(ss) => SSBlock(Js.Array.map(preprocess_star, ss))
- | s => s
-}
-
-// count the number of event controls
-// and die if any blocking timing controls
-let rec num_ec = (s) =>
- switch s {
- | SStmtTimingControl(TMDelay(_), _) => raise(CompileError("Time control not allowed inside new-type always"))
- | SStmtTimingControl(_, _) => 1
- | SStmtAssn(_, _, Some(_), _) => raise(CompileError("Delayed assignments not allowed inside new-type always"))
- | SStmtAssn(_, _, _, _) => 0
- | SStmtDisplay(_, _) => 0
- | SStmtMonitor(_, _) => 0
- | SStmtFinish => 0
- | SStmtIf(_, s) => num_ec(s)
- | SStmtIfElse(_, s1, s2) => num_ec(s1) + num_ec(s2)
- | SSBlock(ss) => Utils.sum(Js.Array.map(num_ec, ss))
-}
-
-let validate_proc = (pt, s) => 
- if pt == ProcAlways(AlwaysComb) || pt == ProcAlways(AlwaysLatch) {
-  num_ec(s) == 0 ? () : raise(CompileError("Event control not allowed inside always_comb/always_latch"))
- } else if pt == ProcAlways(AlwaysFf) {
-  num_ec(s) == 1 ? () : raise(CompileError("Must be one and one only event control inside always_ff"))
- } else {
-  ()
- }
-
-let preprocess_proc = (pt, s) =>
- switch pt {
- | ProcAlways(AlwaysComb) => normalise_always_comb(s)
- | ProcAlways(AlwaysLatch) => normalise_always_comb(s)
- | _ => preprocess_star(s)
-}
-
-// Compiler
 
 let compile_var = ((lhs, rhs)) => {
  { target: lhs, init: rhs }
@@ -349,16 +104,6 @@ let rec compile_stmt = (s) => {
  }
 }
 
-let compile_proc_type = (pt) =>
- switch pt {
- | "initial" => ProcInitial
- | "always" => ProcAlways(Always)
- | "always_comb" => ProcAlways(AlwaysComb)
- | "always_latch" => ProcAlways(AlwaysLatch)
- | "always_ff" => ProcAlways(AlwaysFf)
- | _ => Js.Exn.raiseError("impossible proc type")
-}
-
 let compile_top_level = (m, tl) => {
  switch (tl) {
  | TLVars(ds) =>
@@ -386,9 +131,7 @@ let compile_top_level = (m, tl) => {
     raise(CompileError("Unsupported gate: " ++ gate))
    }
  | TLProc(pt, s) =>
-   let pt = compile_proc_type(pt)
-   let _ = validate_proc(pt, s)
-   let s = preprocess_proc(pt, s)
+   let pt = str_to_proc_type(pt)
    let ss = compile_stmt(s)
    let proc = { proc_type: pt, stmts: ss }
 
@@ -398,10 +141,5 @@ let compile_top_level = (m, tl) => {
 
 // Top-level entry
 
-let compile = (ss) => {
- let _ = Js.Array.reduce(tcheck_top_level, Belt.Map.String.empty, ss)
-
- let m = {vars: [], nets: [], conts: [], procs: []}
- let m = Js.Array.reduce(compile_top_level, m, ss)
- m
-}
+let compile = (ss) =>
+ Js.Array.reduce(compile_top_level, vmodule_empty, ss)

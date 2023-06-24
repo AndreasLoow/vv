@@ -1,6 +1,7 @@
 // Pretty-printer
 
 open Utils
+open Ast
 open Verilog
 
 let dummy_fragments = (l) => {

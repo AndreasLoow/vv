@@ -1,5 +1,4 @@
-open Compiler
-@module("./parser") external parse: string => parse_result = "parse"
+@module("./parser") external parse: string => AstParse.parse_result = "parse"
 @scope("window") @val external alert: string => unit = "alert"
 
 open Verilog
@@ -9,7 +8,7 @@ let make = () => {
   // REF: 4.5 SystemVerilog simulation reference algorithm
   // REF: execute_simulation
 
-  let cir = vmodule_empty
+  let cir = Ast.vmodule_empty
 
   // REF: T = 0;
   // REF: initialize the values of all nets and variables;
@@ -46,12 +45,12 @@ let make = () => {
 
    switch p {
    | ParseOk(ss) =>
-     switch Verilog.build_state(Compiler.compile(ss)) {
+     switch build_state(Compiler.compile(Elaborator.elaborate(ss))) {
      | s =>
        let s = run_init(s)
        setState(_ => s)
-     | exception TypeCheckError(msg) => alert("Type checking failed: " ++ msg)
-     | exception CompileError(msg) => alert("Compilation failed: " ++ msg)
+     | exception Elaborator.ElaboratorError(msg) => alert("Elaboration failed: " ++ msg)
+     | exception Compiler.CompileError(msg) => alert("Compilation failed: " ++ msg)
      }
    | ParseFail(err) =>
      //Js.log(err)
@@ -73,11 +72,11 @@ let make = () => {
   let time = React.string("Simulation time: " ++ Belt.Int.toString(state.time) ++ " (" ++ status_str(state.status) ++ ")")
 
   let env = Belt.Array.map(Belt.Map.String.toArray(state.env), ((k, v)) => {
-   <li key={ k }> { React.string(k ++ ": " ++ Verilog.value_str(v)) } </li>
+   <li key={ k }> { React.string(k ++ ": " ++ Ast.value_str(v)) } </li>
   })
 
   let cont_env = Belt.Array.mapWithIndex(state.cont_env, (i, v) => {
-   <li key={ Belt.Int.toString(i) }> { React.string(Belt.Array.getExn(state.vmodule.conts, i).lhs ++ "(" ++ Belt.Int.toString(i) ++ "): " ++ Verilog.value_str(v)) } </li>
+   <li key={ Belt.Int.toString(i) }> { React.string(Belt.Array.getExn(state.vmodule.conts, i).lhs ++ "(" ++ Belt.Int.toString(i) ++ "): " ++ Ast.value_str(v)) } </li>
   })
 
   let proc_env = Belt.Array.mapWithIndex(state.proc_env, (i, s) => {
