@@ -12,7 +12,7 @@ VV is implemented in [ReScript](https://rescript-lang.org), an OCaml dialect of 
 
 When adding new example modules, run `examples/compile.hs` to generate an updated `src/Templates.res` file.
 
-The template `vitejs-template-react-rescript` was used as a basis for the current setup. Some of the following is sometimes useful to remember:
+The template [vitejs-template-react-rescript](https://github.com/jihchi/vitejs-template-react-rescript) was used as a basis for the current setup. Some of the following is sometimes useful to remember:
 
 ```sh
 npx degit jihchi/vitejs-template-react-rescript my-vitejs-react-rescript
