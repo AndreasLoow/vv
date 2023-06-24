@@ -44,8 +44,8 @@ let empty_event_queue =
 
 type region = RegionActive | RegionInactive | RegionNBA
 
-// TODO: should use the same name as the standard
-type proc_running_state = ProcStateRunning | ProcStateWaiting | ProcStateBlocked | ProcStateFinished
+// REF: 9.7 Fine-grain process control
+type proc_running_state = ProcStateFinished | ProcStateRunning | ProcStateWaiting
 
 // Currently no need for local vars,
 // some of the data in here might be redundant w.r.t.
@@ -476,7 +476,7 @@ let step_proc = (s, i) => {
  switch Belt.Array.getExn(p.stmts,ps.pc) {
  | StmtTimingControl(TMDelay(delay)) => {
    let ps = proc_inc_pc(p, ps)
-   let ps = {...ps, state: ProcStateBlocked}
+   let ps = {...ps, state: ProcStateWaiting}
    let proc_env = Js.Array.copy(s.proc_env)
    let _ = Belt.Array.setExn(proc_env, i, ps)
 
@@ -508,7 +508,7 @@ let step_proc = (s, i) => {
      let s = run_listeners(s, -1, var, oldv, newv)
      s
    | Some(d) =>
-     let ps = {...ps, state: ProcStateBlocked}
+     let ps = {...ps, state: ProcStateWaiting}
      let proc_env = Js.Array.copy(s.proc_env)
      let _ = Belt.Array.setExn(proc_env, i, ps)
 

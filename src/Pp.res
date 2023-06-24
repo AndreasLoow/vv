@@ -133,7 +133,6 @@ let proc_running_state_str = (s) =>
  switch (s) {
  | ProcStateRunning => "running"
  | ProcStateWaiting => "waiting"
- | ProcStateBlocked => "blocked"
  | ProcStateFinished => "finished"
  }
 

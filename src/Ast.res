@@ -211,16 +211,11 @@ let rec ee_is_sensitive_to = (ee, var, edge) =>
 
 let tm_is_sensitive_to = (tm, var, ValBit(oldv), ValBit(newv)) =>
  switch tm {
- | StmtTimingControl(TMEvent(ee)) => {
+ | StmtTimingControl(TMEvent(ee)) =>
    let edge = bit_edge(oldv, newv)
 
-   if edge == EdgeNone {
-     false
-   } else {
-     ee_is_sensitive_to(ee, var, edge)
-   }
- }
- | _ => Js.Exn.raiseError("impossible")
+   (edge != EdgeNone) && ee_is_sensitive_to(ee, var, edge)
+ | _ => false
  }
 
 type cont = { lhs: var, delay: delay, rhs: exp }
