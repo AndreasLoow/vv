@@ -20,6 +20,10 @@ code, pre {
  vertical-align:top;
 }
 
+#code-render-title {
+ margin-top:0;
+}
+
 #code-render {
  font-family:monospace;
  white-space:pre;
