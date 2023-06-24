@@ -8,7 +8,7 @@ The example modules available in the demo are available as files in the director
 
 ## Implementation details
 
-VV is implemented in [ReScript](https://rescript-lang.org), an OCaml dialect of JavaScript. The front-end uses [React](https://reactjs.org). For parsing Verilog files, [Ohm](https://ohmjs.org) is used (whose error reporting leaves much to be desired). After parsing, the parse tree is compiled to an internal representation by [src/Compiler.res](src/Compiler.res); the internal representation is unstructured (gotos) instead of structured (as Verilog: if, etc.), making pausing execution easier. See [src/Verilog.res](src/Verilog.res) for the core of the simulator. The front-end of the tool is in [src/Simulator.res](src/Simulator.res).
+VV is implemented in [ReScript](https://rescript-lang.org), an OCaml dialect of JavaScript. The front-end uses [React](https://reactjs.org). For parsing Verilog files, [Ohm](https://ohmjs.org) is used (whose error reporting leaves much to be desired). After parsing, some simple checks are done by [src/Elaborator.res](src/Elaborator.res) and the parse tree is compiled to an internal representation by [src/Compiler.res](src/Compiler.res); the internal representation is unstructured (gotos) instead of structured (as Verilog: if, etc.), making pausing execution easier. See [src/Verilog.res](src/Verilog.res) for the core of the simulator. The front-end of the tool is in [src/Simulator.res](src/Simulator.res).
 
 When adding new example modules, run `examples/compile.hs` to generate an updated `src/Templates.res` file.
 
