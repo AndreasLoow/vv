@@ -55,12 +55,13 @@ type proc_state = {
  state: proc_running_state
 }
 
-type status = Running | Finished
+type status = Running | Finished(option<value>)
 
 let status_str = (s) =>
  switch s {
  | Running => "running"
- | Finished => "finished"
+ | Finished(None) => "finished"
+ | Finished(Some(v)) => "finished(" ++ value_str(v) ++ ")"
  }
 
 // env is both nets and variables (cannot have name overlap anyway)
@@ -551,8 +552,9 @@ let step_proc = (s, i) => {
    let s = {...s, proc_env: proc_env, monitor: monitor}
    s
   }
- | StmtFinish =>
-   {...s, status: Finished}
+ | StmtFinish(e) =>
+   let v = run_exp(s.env, e)
+   {...s, status: Finished(Some(v))}
  | StmtGoto(jump) =>
    step_proc_goto(s, i, jump)
  | StmtGotoUnless(e, jump) => {
@@ -819,7 +821,7 @@ let run_time = (s) => {
  let _ = Js.Array.shift(queue)
 
  if Js.Array.length(queue) == 0 {
-  {...s, queue: queue, status: Finished}
+  {...s, queue: queue, status: Finished(None)}
  } else {
   let (time, _) = Belt.Array.getExn(queue, 0)
   {...s, queue: queue, time: time}

@@ -87,7 +87,7 @@ let rec compile_stmt = (s) => {
 
  | SStmtDisplay(str, es) => [StmtDisplay(str, es)]
  | SStmtMonitor(str, es) => [StmtMonitor(str, es)]
- | SStmtFinish => [StmtFinish]
+ | SStmtFinish(e) => [StmtFinish(e)]
 
  | SStmtIf(e, s) =>
    let ss = compile_stmt(s)

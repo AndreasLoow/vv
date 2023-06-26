@@ -195,7 +195,7 @@ type stmt =
  | StmtAssn(assn_type, var, option<delay>, exp)
  | StmtDisplay(string, array<exp_or_time>)
  | StmtMonitor(string, array<exp_or_time>)
- | StmtFinish
+ | StmtFinish(exp)
  | StmtGoto(int)
  | StmtGotoUnless(exp, int)
 

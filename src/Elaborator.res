@@ -138,7 +138,8 @@ let rec check_stmt = (env_prev, new_style, s, stm) =>
  | SStmtMonitor(_, es) =>
     Js.Array.forEach(check_exp_or_time(s), es)
     s
- | SStmtFinish =>
+ | SStmtFinish(e) =>
+    check_exp(s, e)
     s
  | SStmtIf(e, stm) =>
     check_exp(s, e)
@@ -184,7 +185,7 @@ let rec reads_star = (s) =>
  | SStmtAssn(_, _, _, e) => reads_star_exp(e)
  | SStmtDisplay(_, es) => Utils.unions(Js.Array.map(reads_star_exp_or_time, es))
  | SStmtMonitor(_, es) => Utils.unions(Js.Array.map(reads_star_exp_or_time, es))
- | SStmtFinish => Belt.Set.String.empty
+ | SStmtFinish(e) => reads_star_exp(e)
  | SStmtIf(e, s) => Belt.Set.String.union(reads_star_exp(e), reads_star(s))
  | SStmtIfElse(e, s1, s2) => Utils.unions([reads_star_exp(e), reads_star(s1), reads_star(s2)])
  | SSBlock(ss) => Utils.unions(Js.Array.map(reads_star, ss))
@@ -196,7 +197,7 @@ let rec writes_star = (s) =>
  | SStmtAssn(_, var, _, _) => Belt.Set.String.fromArray([var])
  | SStmtDisplay(_, _) => Belt.Set.String.empty
  | SStmtMonitor(_, _) => Belt.Set.String.empty
- | SStmtFinish => Belt.Set.String.empty
+ | SStmtFinish(_) => Belt.Set.String.empty
  | SStmtIf(_, s) => writes_star(s)
  | SStmtIfElse(_, s1, s2) => Belt.Set.String.union(writes_star(s1), writes_star(s2))
  | SSBlock(ss) => Utils.unions(Js.Array.map(writes_star, ss))
@@ -246,7 +247,7 @@ let rec num_ec = (s) =>
  | SStmtAssn(_, _, _, _) => 0
  | SStmtDisplay(_, _) => 0
  | SStmtMonitor(_, _) => 0
- | SStmtFinish => 0
+ | SStmtFinish(_) => 0
  | SStmtIf(_, s) => num_ec(s)
  | SStmtIfElse(_, s1, s2) => num_ec(s1) + num_ec(s2)
  | SSBlock(ss) => Utils.sum(Js.Array.map(num_ec, ss))

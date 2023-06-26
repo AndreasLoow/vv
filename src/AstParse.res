@@ -7,7 +7,7 @@ type rec stmt_structured =
  | SStmtAssn(assn_type, var, option<delay>, exp)
  | SStmtDisplay(string, array<exp_or_time>)
  | SStmtMonitor(string, array<exp_or_time>)
- | SStmtFinish
+ | SStmtFinish(exp)
  | SStmtIf(exp, stmt_structured)
  | SStmtIfElse(exp, stmt_structured, stmt_structured)
  | SSBlock(array<stmt_structured>)
@@ -17,7 +17,7 @@ let mk_SStmtTimingControl = (tc, opts) => SStmtTimingControl(tc, opts)
 let mk_SStmtAssn = (at, v, d, e) => SStmtAssn(at, v, d, e)
 let mk_SStmtDisplay = (str, es) => SStmtDisplay(str, es)
 let mk_SStmtMonitor = (str, es) => SStmtMonitor(str, es)
-let mk_SStmtFinish = SStmtFinish
+let mk_SStmtFinish = (e) => SStmtFinish(e)
 let mk_SStmtIf = (ec, st) => SStmtIf(ec, st)
 let mk_SStmtIfElse = (ec, st, sf) => SStmtIfElse(ec, st, sf)
 let mk_SSBlock = (ss) => SSBlock(ss)

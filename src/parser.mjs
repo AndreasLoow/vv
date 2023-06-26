@@ -30,7 +30,8 @@ const verilogGrammar = ohm.grammar(String.raw`
 
     TimeCont = "#" number -- delay
              | "@" "(" Event_Exp ")" -- event
-             | "@" "("? "*" ")"? -- star
+             | "@" "(" "*" ")" -- star
+             | "@" "*" -- star_no_para
 
     Stmt = id "=" Exp ";" -- blocking
          | id "=" Delay Exp ";" -- blocking_delay
@@ -47,6 +48,7 @@ const verilogGrammar = ohm.grammar(String.raw`
          | "$monitor" "(" string ")" ";" -- monitor_no_args
 
          | "$finish" ";" -- finish
+         | "$finish" "(" Exp ")" ";" -- finish_arg
 
          | TimeCont Stmt -- time_stmt
          | TimeCont ";" -- time
@@ -55,7 +57,8 @@ const verilogGrammar = ohm.grammar(String.raw`
 
     Delay = "#" "(" number "," number "," number ")" -- three
           | "#" "(" number "," number ")" -- two
-          | "#" "("? number ")"? -- one
+          | "#" "(" number ")" -- one
+          | "#" number -- one_no_para
 
     WireType = "wire" | "tri" | "wand" | "triand" | "wor" | "trior"
 
@@ -139,6 +142,7 @@ t.addOperation('translate', {
     TimeCont_delay(_1, d) { return Ast.mk_TMDelay(d.translate()); },
     TimeCont_event(_1, _2, ee, _3) { return Ast.mk_TMEvent(ee.translate()); },
     TimeCont_star(_1, _2, _4, _3) { return Ast.mk_TMStar; },
+    TimeCont_star_no_para(_1, _2) { return Ast.mk_TMStar; },
 
     Stmt_blocking(e1, _1, e2, _2) { return AstParse.mk_SStmtAssn(Ast.mk_AssnBlocking, e1.translate(), Utils.mk_None, e2.translate()); },
     Stmt_blocking_delay(e1, _1, d, e2, _2) { return AstParse.mk_SStmtAssn(Ast.mk_AssnBlocking, e1.translate(), Utils.mk_Some(d.translate()), e2.translate()); },
@@ -154,7 +158,8 @@ t.addOperation('translate', {
     Stmt_monitor(_1, _2, str, _3, es, _4, _5) { return AstParse.mk_SStmtMonitor(str.translate(), es.asIteration().children.map(e => e.translate())); },
     Stmt_monitor_no_args(_1, _2, str, _3, _4) { return AstParse.mk_SStmtMonitor(str.translate(), []); },
 
-    Stmt_finish(_1, _2) { return AstParse.mk_SStmtFinish; },
+    Stmt_finish(_1, _2) { return AstParse.mk_SStmtFinish(Ast.mk_ExpVal(Ast.mk_ValBit(Bit.mk_BitTrue))); },
+    Stmt_finish_arg(_1, _2, e, _3, _4) { return AstParse.mk_SStmtFinish(e.translate()); },
 
     Stmt_time_stmt(tm, s) { return AstParse.mk_SStmtTimingControl(tm.translate(), Utils.mk_Some(s.translate())); },
     Stmt_time(tm, _1) { return AstParse.mk_SStmtTimingControl(tm.translate(), Utils.mk_None); },
@@ -162,6 +167,7 @@ t.addOperation('translate', {
     Stmt_block(_1, ss, _2) { return AstParse.mk_SSBlock(ss.children.map(s => s.translate())); },
 
     Delay_one(_1, _2, d1, _3) { return Ast.mk_Delay1(d1.translate()); },
+    Delay_one_no_para(_1, d1) { return Ast.mk_Delay1(d1.translate()); },
     Delay_two(_1, _2, d1, _3, d2, _4) { return Ast.mk_Delay2(d1.translate(), d2.translate()); },
     Delay_three(_1, _2, d1, _3, d2, _4, d3, _5) { return Ast.mk_Delay3(d1.translate(), d2.translate(), d3.translate()); },
 

@@ -74,7 +74,7 @@ let stmt_str_help = (s) =>
  | StmtAssn(AssnNonBlocking, var, dopt, e) => var ++ " <= " ++ delay_opt_str(dopt) ++ exp_str(e)
  | StmtDisplay(str, es) => "$display(" ++ display_args_str(str, es) ++ ")"
  | StmtMonitor(str, es) => "$monitor(" ++ display_args_str(str, es) ++ ")"
- | StmtFinish => "$finish"
+ | StmtFinish(e) => "$finish(" ++ exp_str(e) ++ ")"
  | StmtGoto(n) => "goto +" ++ Belt.Int.toString(n)
  | StmtGotoUnless(e, n) => "goto +" ++ Belt.Int.toString(n) ++ " unless " ++ exp_str(e)
  }
