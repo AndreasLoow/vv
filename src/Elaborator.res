@@ -239,25 +239,25 @@ let rec preprocess_star = (s) =>
 
 // count the number of event controls
 // and die if any blocking timing controls
-let rec num_ec = (s) =>
+let rec num_ec = (pt, s) =>
  switch s {
- | SStmtTimingControl(TMDelay(_), _) => raise(ElaboratorError("Time control not allowed inside new-type always"))
+ | SStmtTimingControl(TMDelay(_), _) => raise(ElaboratorError("Time control not allowed inside " ++ Pp.proc_type_str(pt)))
  | SStmtTimingControl(_, _) => 1
- | SStmtAssn(_, _, Some(_), _) => raise(ElaboratorError("Delayed assignments not allowed inside new-type always"))
+ | SStmtAssn(_, _, Some(_), _) => raise(ElaboratorError("Delayed assignments not allowed inside " ++ Pp.proc_type_str(pt)))
  | SStmtAssn(_, _, _, _) => 0
  | SStmtDisplay(_, _) => 0
  | SStmtMonitor(_, _) => 0
  | SStmtFinish(_) => 0
- | SStmtIf(_, s) => num_ec(s)
- | SStmtIfElse(_, s1, s2) => num_ec(s1) + num_ec(s2)
- | SSBlock(ss) => Utils.sum(Js.Array.map(num_ec, ss))
+ | SStmtIf(_, s) => num_ec(pt, s)
+ | SStmtIfElse(_, s1, s2) => num_ec(pt, s1) + num_ec(pt, s2)
+ | SSBlock(ss) => Utils.sum(Js.Array.map(num_ec(pt), ss))
 }
 
 let validate_proc = (pt, s) =>
- if pt == ProcAlways(AlwaysComb) || pt == ProcAlways(AlwaysLatch) {
-  num_ec(s) == 0 ? () : raise(ElaboratorError("Event control not allowed inside always_comb/always_latch"))
+ if pt == ProcAlways(AlwaysComb) || pt == ProcAlways(AlwaysLatch) || pt == ProcFinal {
+  num_ec(pt, s) == 0 ? () : raise(ElaboratorError("Event control not allowed inside " ++ Pp.proc_type_str(pt)))
  } else if pt == ProcAlways(AlwaysFf) {
-  num_ec(s) == 1 ? () : raise(ElaboratorError("Must be one and one only event control inside always_ff"))
+  num_ec(pt, s) == 1 ? () : raise(ElaboratorError("Must be one and one only event control inside always_ff"))
  } else {
   ()
  }

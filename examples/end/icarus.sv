@@ -1,6 +1,7 @@
-module icarus_finish;
+module icarus;
 
-// See https://github.com/steveicarus/iverilog/issues/962
+// Relates to a potential problem in Icarus, see
+// https://github.com/steveicarus/iverilog/issues/962
 
 logic x = 1;
 

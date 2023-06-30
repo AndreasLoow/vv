@@ -118,13 +118,20 @@ let proc_type_str = (t) =>
  | ProcAlways(AlwaysLatch) => "always_latch"
  | ProcAlways(AlwaysFf) => "always_ff"
  | ProcInitial => "initial"
+ | ProcFinal => "final"
  }
 
 let proc_str = (proc_env, p, i) => {
+ let proc_comment = p.proc_type == ProcFinal
+                    ? []
+                    : [<span className="comment"> { React.string("// Process " ++ Belt.Int.toString(i + 1)) } </span>]
+ let pc = p.proc_type == ProcFinal || Belt.Array.getExn(proc_env, i).state == ProcStateFinished
+          ? -1
+          : Belt.Array.getExn(proc_env, i).pc
  let es = Js.Array.concatMany(
-          [[<span className="comment"> { React.string("// Process " ++ Belt.Int.toString(i + 1)) } </span>,
-            React.string("\n" ++ proc_type_str(p.proc_type)), React.string(" begin\n")],
-           stmts_str(if Belt.Array.getExn(proc_env, i).state == ProcStateFinished { -1 } else { Belt.Array.getExn(proc_env, i).pc }, p.stmts),
+          [proc_comment,
+           [React.string("\n" ++ proc_type_str(p.proc_type)), React.string(" begin\n")],
+           stmts_str(pc, p.stmts),
            [React.string("\nend")]], [])
  React.array(dummy_fragments(es))
 }
@@ -155,11 +162,13 @@ let event_str = (ps, e) => {
 let vmodule_str = (m, proc_env) => {
  let r = intersperse(
    React.string("\n\n"),
-   Js.Array2.concat(
-   [React.string(Js.Array.joinWith("\n", Js.Array.map(net_str, m.nets))),
+   Js.Array.concatMany(
+   [[React.string(Js.Array.joinWith("\n", Js.Array.map(net_str, m.nets))),
     React.string(Js.Array.joinWith("\n", Js.Array.map(decl_str, m.vars))),
     React.string(Js.Array.joinWith("\n", Js.Array.map(cont_str, m.conts)))],
-    Js.Array.mapi(proc_str(proc_env), m.procs)))
+    Js.Array.mapi(proc_str(proc_env), m.procs),
+    Js.Array.mapi(proc_str(proc_env), m.finals)],
+   []))
   React.array(dummy_fragments(r))
 }
 

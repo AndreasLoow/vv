@@ -52,5 +52,6 @@ let str_to_proc_type = (pt) =>
  | "always_comb" => ProcAlways(AlwaysComb)
  | "always_latch" => ProcAlways(AlwaysLatch)
  | "always_ff" => ProcAlways(AlwaysFf)
+ | "final" => ProcFinal
  | _ => Js.Exn.raiseError("impossible proc type")
 }

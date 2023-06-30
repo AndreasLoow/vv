@@ -245,7 +245,7 @@ let net_type_res = (nt) =>
 type net = { type_: net_type, name: var, delay: delay }
 
 type always_type = Always | AlwaysComb | AlwaysFf | AlwaysLatch
-type proc_type = ProcAlways(always_type) | ProcInitial
+type proc_type = ProcAlways(always_type) | ProcInitial | ProcFinal
 
 let is_new_always_type = (at) =>
  switch at {
@@ -263,6 +263,7 @@ let is_repeating_proc_type = (pt) =>
  switch pt {
  | ProcAlways(_) => true
  | ProcInitial => false
+ | ProcFinal => false
  }
 
 type proc = { proc_type: proc_type, stmts: array<stmt> }
@@ -271,13 +272,15 @@ let proc_run_at_0 = (t) =>
  switch (t) {
  | ProcAlways(_) => true
  | ProcInitial => true
+ | ProcFinal => false
  }
 
 type vmodule = {
  vars: array<decl>,
  nets: array<net>,
  conts: array<cont>,
- procs: array<proc>
+ procs: array<proc>,
+ finals: array<proc>
 }
 
-let vmodule_empty = {vars: [], procs: [], nets: [], conts: []}
+let vmodule_empty = {vars: [], procs: [], nets: [], conts: [], finals: []}

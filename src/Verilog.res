@@ -55,13 +55,21 @@ type proc_state = {
  state: proc_running_state
 }
 
-type status = Running | Finished(option<value>)
+type status = Running | RunningFinals | Finished(option<value>)
 
 let status_str = (s) =>
  switch s {
  | Running => "running"
+ | RunningFinals => "running-finals"
  | Finished(None) => "finished"
  | Finished(Some(v)) => "finished(" ++ value_str(v) ++ ")"
+ }
+
+let is_running = (s) =>
+ switch s {
+ | Running => true
+ | RunningFinals => true
+ | _ => false
  }
 
 // env is both nets and variables (cannot have name overlap anyway)
@@ -303,8 +311,8 @@ let proc_inc_pc = (p, ps) => {
 }
 
 let run_listeners = (s, contI, var, oldv, newv) => {
- if (oldv == newv) {
-  // nothing has changed
+ if (oldv == newv || s.status == RunningFinals) {
+  // nothing has changed, and also don't run listeners in running-finals mode
   s
  } else {
   let queue = Js.Array.copy(s.queue)
@@ -470,7 +478,7 @@ let run_display = (s, str, es, prev) => {
  }
 }
 
-let step_proc = (s, i) => {
+let rec step_proc = (s, i) => {
  let p = Belt.Array.getExn(s.vmodule.procs, i)
  let ps = Belt.Array.getExn(s.proc_env, i)
 
@@ -554,7 +562,13 @@ let step_proc = (s, i) => {
   }
  | StmtFinish(e) =>
    let v = run_exp(s.env, e)
-   {...s, status: Finished(Some(v))}
+   let oldstatus = s.status
+   let s = {...s, status: Finished(Some(v))}
+
+   switch oldstatus {
+   | Running => run_finals(s)
+   | _ => s
+   }
  | StmtGoto(jump) =>
    step_proc_goto(s, i, jump)
  | StmtGotoUnless(e, jump) => {
@@ -571,12 +585,12 @@ let step_proc = (s, i) => {
  }
 }
 
-let steps_proc = (s, i) => {
+and steps_proc = (s, i) => {
  let fuel = ref(0)
  let sref = ref(s)
 
  while fuel.contents < 100 &&
-       sref.contents.status == Running &&
+       is_running(sref.contents.status) &&
        Belt.Array.getExn(sref.contents.proc_env, i).state == ProcStateRunning {
    fuel := fuel.contents + 1
 
@@ -586,6 +600,34 @@ let steps_proc = (s, i) => {
  if fuel.contents == 100 { Js.Exn.raiseError("time out!") }
 
  sref.contents
+}
+
+and run_finals_itr = (s, i) =>
+ if (i >= Js.Array.length(s.vmodule.finals)) {
+  s
+ } else {
+  let p = Belt.Array.getExn(s.vmodule.finals, i)
+
+  let _ = Js.Array.push(p, s.vmodule.procs)
+  let final_ps = {pc: 0, state: ProcStateRunning}
+  let j = Js.Array.push(final_ps, s.proc_env)
+
+  let s = steps_proc(s, j - 1)
+  let _ = Js.Array.pop(s.vmodule.procs)
+  let _ = Js.Array.pop(s.proc_env)
+
+  is_running(s.status)
+  ? run_finals_itr(s, i + 1)
+  : s
+ }
+
+and run_finals = (s) => {
+ let oldstatus = s.status
+ let s = {...s, proc_env: Js.Array.copy(s.proc_env), status: RunningFinals}
+ let s = run_finals_itr(s, 0)
+
+ // Restore old status in case $finish was not called again
+ is_running(s.status) ? {...s, status: oldstatus} : s
 }
 
 let region_shift = (region, ei) => {
@@ -821,7 +863,8 @@ let run_time = (s) => {
  let _ = Js.Array.shift(queue)
 
  if Js.Array.length(queue) == 0 {
-  {...s, queue: queue, status: Finished(None)}
+  let s = {...s, queue: queue, status: Finished(None)}
+  run_finals(s)
  } else {
   let (time, _) = Belt.Array.getExn(queue, 0)
   {...s, queue: queue, time: time}

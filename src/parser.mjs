@@ -8,7 +8,7 @@ const verilogGrammar = ohm.grammar(String.raw`
   verilogGrammar {
     Module = "module" id ("(" ")")? ";" Top* "endmodule"
 
-    ProcType = "initial" | "always_comb" | "always_latch" | "always_ff" | "always"
+    ProcType = "initial" | "always_comb" | "always_latch" | "always_ff" | "always" | "final"
 
     Decl = id "=" Exp -- init
          | id -- no_init

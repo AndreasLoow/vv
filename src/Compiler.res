@@ -135,7 +135,9 @@ let compile_top_level = (m, tl) => {
    let ss = compile_stmt(s)
    let proc = { proc_type: pt, stmts: ss }
 
-   {...m, procs: Js.Array2.concat(m.procs, [proc])}
+   pt == ProcFinal
+   ? {...m, finals: Js.Array2.concat(m.finals, [proc])}
+   : {...m, procs: Js.Array2.concat(m.procs, [proc])}
  }
 }
 
