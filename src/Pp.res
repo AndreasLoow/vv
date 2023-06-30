@@ -159,13 +159,16 @@ let event_str = (ps, e) => {
  }
 }
 
+let react_string_or_nothing = (xs) =>
+ xs == [] ? [] : [React.string(Js.Array.joinWith("\n", xs))]
+
 let vmodule_str = (m, proc_env) => {
  let r = intersperse(
    React.string("\n\n"),
    Js.Array.concatMany(
-   [[React.string(Js.Array.joinWith("\n", Js.Array.map(net_str, m.nets))),
-    React.string(Js.Array.joinWith("\n", Js.Array.map(decl_str, m.vars))),
-    React.string(Js.Array.joinWith("\n", Js.Array.map(cont_str, m.conts)))],
+   [react_string_or_nothing(Js.Array.map(net_str, m.nets)),
+    react_string_or_nothing(Js.Array.map(decl_str, m.vars)),
+    react_string_or_nothing(Js.Array.map(cont_str, m.conts)),
     Js.Array.mapi(proc_str(proc_env), m.procs),
     Js.Array.mapi(proc_str(proc_env), m.finals)],
    []))
