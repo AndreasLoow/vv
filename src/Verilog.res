@@ -82,7 +82,8 @@ type state =
    queue: array<(int, event_queue)>,
    monitor: option<(string, array<exp_or_time>, option<array<value_or_time>>)>, // this represents the "postponed" region
    output: string,
-   time: int }
+   time: int,
+   process_nba_first: bool }
 
 let lookupNetExn = (nets, netname) =>
  switch Js.Array.find(n => n.name == netname, nets) {
@@ -665,7 +666,7 @@ let run_exp_init = (env, eopt) =>
  | Some(e) => run_exp(env, e)
  }
 
-let build_state = (m : vmodule) => {
+let build_state = (m : vmodule, old_process_nba_first) => {
  let proc_es = m.procs
              |> Js.Array.mapi((p, i) => (p, i))
              |> Js.Array.filter(((p, _)) => proc_run_at_0(p.proc_type))
@@ -689,7 +690,8 @@ let build_state = (m : vmodule) => {
    queue: [(0, {...empty_event_queue, active: proc_es})],
    monitor: None,
    output: "",
-   time: 0 }
+   time: 0,
+   process_nba_first: old_process_nba_first }
  }
 
 let build_initial_cont_update_event = (s, p, i) => {
@@ -713,8 +715,17 @@ let run_init = (s:state) => {
   {...s, queue: queue}
  }
 
-let event_active = (s, time) => {
- s.status == Running && s.time == time
+let event_active = (s, time, i) => {
+ s.status == Running && s.time == time &&
+ (!s.process_nba_first || 
+  switch s.queue[0] {
+  | None => true
+  | Some((_, queue0)) => 
+    switch queue0.active[0] {
+    | Some(Events(_, _)) => i == 0
+    | _ => true
+    }
+  })
 }
 
 // Precondition: event_active(s, <current time>, i) must be true

@@ -37,6 +37,10 @@ code, pre {
  margin-top:0;
 }
 
+#nba-checkbox {
+ float:right;
+}
+
 .comment {
  color:grey;
 }

@@ -12,14 +12,14 @@ let make = () => {
 
   // REF: T = 0;
   // REF: initialize the values of all nets and variables;
-  let sinit = build_state(cir)
+  let sinit = build_state(cir, true)
   // REF: schedule all initialization events into time zero slot;
   let sinit = run_init(sinit)
 
   let (state, setState) = React.useState(_ => sinit)
 
   let handle_event = (time, i, _e) => {
-   setState(s => if event_active(s, time) { run_event(s, i) } else { s })
+   setState(s => if event_active(s, time, i) { run_event(s, i) } else { s })
   }
 
   let handle_inactive_done = (_e) => {
@@ -34,6 +34,11 @@ let make = () => {
    setState(s => if time_active(s) { run_time(s) } else { s })
   }
 
+  let handle_nba_checkbox = (e) => {
+   let val = ReactEvent.Form.target(e)["checked"]
+   setState(s => {...s, process_nba_first: val})
+  }
+
   let className_wrapper = (b) =>
    b ? "active" : ""
 
@@ -45,9 +50,9 @@ let make = () => {
 
    switch p {
    | ParseOk(ss) =>
-     switch build_state(Compiler.compile(Elaborator.elaborate(ss))) {
-     | s =>
-       let s = run_init(s)
+     switch Compiler.compile(Elaborator.elaborate(ss)) {
+     | m =>
+       let s = run_init(build_state(m, state.process_nba_first))
        setState(_ => s)
      | exception Elaborator.ElaboratorError(msg) => alert("Elaboration failed: " ++ msg)
      | exception Compiler.CompileError(msg) => alert("Compilation failed: " ++ msg)
@@ -88,7 +93,7 @@ let make = () => {
     Belt.Array.mapWithIndex(q.active, (i, e) =>
      <li key={ event_key(e) }
          onClick={ handle_event(qi, i) }
-         className={ className_wrapper(event_active(state, qi)) }>
+         className={ className_wrapper(event_active(state, qi, i)) }>
       { Pp.event_str(state.vmodule.conts, e) }
      </li>)
 
@@ -126,6 +131,10 @@ let make = () => {
    <select defaultValue="empty.sv" onChange={ handle_template_change }>
     { React.array(templates) }
    </select>
+
+   <label id="nba-checkbox" title="Control for the semantics of NBA events, see 00/d_concurrency.sv">
+    <input type_="checkbox" checked={ state.process_nba_first } onChange={ handle_nba_checkbox } />
+    { React.string("Process NBA events first") }</label>
    </div>
    <div>
    <textarea rows={20} cols={60} value={ parseState } onChange={ handle_parse_change } />
