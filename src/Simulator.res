@@ -22,12 +22,12 @@ let make = () => {
    setState(s => if event_active(s, time, i) { run_event(s, i) } else { s })
   }
 
-  let handle_inactive_done = (_e) => {
-   setState(s => if inactive_done_active(s) { run_inactive_done(s) } else { s })
+  let handle_inactive_done = (time, _e) => {
+   setState(s => if inactive_done_active(s, time) { run_inactive_done(s) } else { s })
   }
 
-  let handle_nba_done = (_e) => {
-   setState(s => if nba_done_active(s) { run_nba_done(s) } else { s })
+  let handle_nba_done = (time, _e) => {
+   setState(s => if nba_done_active(s, time) { run_nba_done(s) } else { s })
   }
 
   let handle_time = (_e) => {
@@ -109,8 +109,8 @@ let make = () => {
     <b>{ React.string("Time: " ++ Belt.Int.toString(qi)) }</b>
     <ul>
       <li> { React.string("Active:") } <ul> { React.array(active_es) }</ul> </li>
-      <li onClick={ handle_inactive_done } className={ className_wrapper(inactive_done_active(state)) }> { React.string("Inactive:") } <ul> { React.array(inactive_es) }</ul> </li>
-      <li onClick={ handle_nba_done } className={ className_wrapper(nba_done_active(state)) }>
+      <li onClick={ handle_inactive_done(qi) } className={ className_wrapper(inactive_done_active(state, qi)) }> { React.string("Inactive:") } <ul> { React.array(inactive_es) }</ul> </li>
+      <li onClick={ handle_nba_done(qi) } className={ className_wrapper(nba_done_active(state, qi)) }>
        { React.string("NBA:") } <ul> { React.array(nba_es) }</ul>
       </li>
     </ul>

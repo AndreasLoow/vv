@@ -771,8 +771,9 @@ let run_init = (s:state) => {
   {...s, queue: queue}
  }
 
-let event_active = (s, time, i) => {
- s.status == Running && s.time == time &&
+let event_active = (s, time, i) =>
+ s.status == Running &&
+ s.time == time &&
  (!s.process_nba_first || 
   switch s.queue[0] {
   | None => true
@@ -782,7 +783,6 @@ let event_active = (s, time, i) => {
     | _ => true
     }
   })
-}
 
 // Precondition: event_active(s, <current time>, i) must be true
 // run active event nr. ei
@@ -862,15 +862,14 @@ let run_event = (s:state, ei:int) => {
  }
 }
 
-let inactive_done_active = (s) => {
- if s.status == Running {
-  let (_, queue0) = Belt.Array.getExn(s.queue, 0)
-  queue0.active == [] &&
-  queue0.inactive != []
- } else {
-  false
- }
-}
+let inactive_done_active = (s, time) =>
+ s.status == Running &&
+ s.time == time &&
+ (switch Belt.Array.getExn(s.queue, 0) {
+  | (_, queue0) => 
+    queue0.active == [] &&
+    queue0.inactive != []
+  })
 
 // Precondition: inactive_done_active must be true
 let run_inactive_done = (s) => {
@@ -882,16 +881,15 @@ let run_inactive_done = (s) => {
  {...s, queue: queue}
 }
 
-let nba_done_active = (s) => {
- if s.status == Running {
-  let (_, queue0) = Belt.Array.getExn(s.queue, 0)
-  queue0.active == [] &&
-  queue0.inactive == [] &&
-  queue0.nba != []
- } else {
-  false
- }
-}
+let nba_done_active = (s, time) =>
+ s.status == Running &&
+ s.time == time &&
+ (switch Belt.Array.getExn(s.queue, 0) {
+  | (_, queue0) => 
+    queue0.active == [] &&
+    queue0.inactive == [] &&
+    queue0.nba != []
+  })
 
 // Precondition: nba_done_active must be true
 let run_nba_done = (s) => {
