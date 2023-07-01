@@ -152,7 +152,7 @@ let event_nba_str = (e) =>
 let event_str = (ps, e) => {
  switch e {
  | EventContUpdate(_, i, v) => React.string("update(" ++ Belt.Array.getExn(ps, i).lhs ++ "(" ++ Belt.Int.toString(i) ++ ")): " ++ value_str(v))
- | EventBlockUpdate(_, i, var, v) => React.string("eval(cont: " ++ Belt.Int.toString(i + 1) ++ ", " ++ var ++ " = " ++ value_str(v) ++ ")")
+ | EventBlockUpdate(_, i, var, v) => React.string("eval(proc: " ++ Belt.Int.toString(i + 1) ++ ", " ++ var ++ " = " ++ value_str(v) ++ ")")
  | EventEvaluation(_, i) => React.string("eval(proc: " ++ Belt.Int.toString(i + 1) ++ ")")
  | EventNBA(_, var, v) => React.string("nba(" ++ var ++ " <= " ++ value_str(v) ++ ")")
  | Events(_, es) => <ol> {React.string("NBA events:")} { React.array(Belt.Array.map(es, event_nba_str)) } </ol>
