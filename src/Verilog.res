@@ -181,7 +181,7 @@ let rec run_exp = (env, e) =>
  | ExpOp2(e1, op, e2) =>
    let v1 = run_exp(env, e1)
    let v2 = run_exp(env, e2)
-   
+
    switch op {
    | LAnd => Js.Exn.raiseError("impossible")
    | LOr => Js.Exn.raiseError("impossible")
@@ -283,14 +283,14 @@ let array_remove = (arr, i) => {
  Js.Array2.concat(pre, post)
 }
 
-let region_get = (q, t) => 
+let region_get = (q, t) =>
  switch t {
  | RegionActive => q.active
  | RegionInactive => q.inactive
  | RegionNBA => q.nba
 }
 
-let region_set = (q, t, region) => 
+let region_set = (q, t, region) =>
  switch t {
  | RegionActive => {...q, active: region}
  | RegionInactive => {...q, inactive: region}
@@ -330,15 +330,15 @@ let proc_inc_pc = (p, ps) => {
 
 let rec ee_is_sensitive_to = (ee, env, oldenv) =>
  switch ee {
- | EEPos(e) => 
+ | EEPos(e) =>
    let newv = run_exp(env, e)
    let oldv = run_exp(oldenv, e)
    val_edge(oldv, newv) == EdgePos
- | EENeg(e) => 
+ | EENeg(e) =>
    let newv = run_exp(env, e)
    let oldv = run_exp(oldenv, e)
    val_edge(oldv, newv) == EdgeNeg
- | EEEdge(e) => 
+ | EEEdge(e) =>
    let newv = run_exp(env, e)
    let oldv = run_exp(oldenv, e)
    val_edge(oldv, newv) != EdgeNone
@@ -406,7 +406,7 @@ let run_listeners = (s, contI, var, oldenv) => {
   let toactivate =
    s.proc_env
    |> Js.Array.mapi((ps, i) => (ps, i))
-   |> Js.Array.filter(((ps, i)) => 
+   |> Js.Array.filter(((ps, i)) =>
        ps.state == ProcStateWaiting &&
        tm_is_sensitive_to(Belt.Array.getExn(Belt.Array.getExn(s.vmodule.procs, i).stmts, ps.pc), s.env, oldenv))
    |> Js.Array.map(((ps, i)) => (proc_inc_pc(Belt.Array.getExn(s.vmodule.procs, i), ps), i))
@@ -416,7 +416,7 @@ let run_listeners = (s, contI, var, oldenv) => {
   let _ = Js.Array.forEach(((ps, i)) => Belt.Array.setExn(proc_env, i, ps), toactivate)
 
   // schedule events for now-running processes
-  let newevents = 
+  let newevents =
    toactivate
    |> Js.Array.filter(((ps, _)) => ps.state == ProcStateRunning)
    |> Js.Array.map(((_, i)) => EventEvaluation(next_event_id(), i))
@@ -493,7 +493,7 @@ let format = (str, vs) => {
 }
 
 // differences in time must be ignored
-let display_eq = (v1, v2) => 
+let display_eq = (v1, v2) =>
  switch (v1, v2) {
  | (VTTime(_), VTTime(_)) => true
  | (VTValue(v1), VTValue(v2)) => v1 == v2
@@ -506,7 +506,7 @@ let run_display = (s, str, es, prev) => {
  | None => false
  | Some(prev) => Belt.Array.every2(vs, prev, display_eq)
  }
- 
+
  if same {
   (vs, s.output)
  } else {
@@ -774,10 +774,10 @@ let run_init = (s:state) => {
 let event_active = (s, time, i) =>
  s.status == Running &&
  s.time == time &&
- (!s.process_nba_first || 
+ (!s.process_nba_first ||
   switch s.queue[0] {
   | None => true
-  | Some((_, queue0)) => 
+  | Some((_, queue0)) =>
     switch queue0.active[0] {
     | Some(Events(_, _)) => i == 0
     | _ => true
@@ -830,7 +830,7 @@ let run_event = (s:state, ei:int) => {
 
    let s = {...s, proc_env: proc_env, env: env}
    let s = run_listeners(s, -1, var, oldenv)
- 
+
    steps_proc(s, i)
 
  | EventEvaluation(_, i) =>
@@ -866,7 +866,7 @@ let inactive_done_active = (s, time) =>
  s.status == Running &&
  s.time == time &&
  (switch Belt.Array.getExn(s.queue, 0) {
-  | (_, queue0) => 
+  | (_, queue0) =>
     queue0.active == [] &&
     queue0.inactive != []
   })
@@ -885,7 +885,7 @@ let nba_done_active = (s, time) =>
  s.status == Running &&
  s.time == time &&
  (switch Belt.Array.getExn(s.queue, 0) {
-  | (_, queue0) => 
+  | (_, queue0) =>
     queue0.active == [] &&
     queue0.inactive == [] &&
     queue0.nba != []
@@ -917,7 +917,7 @@ let time_active = (s) => {
  }
 }
 
-let run_monitor = (s) => 
+let run_monitor = (s) =>
  switch s.monitor {
  | None => s
  | Some(str, es, prev) =>

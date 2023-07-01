@@ -54,7 +54,7 @@ let delay_str = (d) =>
 
 let delay_opt_str = (dopt) =>
  switch dopt {
- | None => "" 
+ | None => ""
  | Some(d) => delay_str(d) ++ " "
  }
 
@@ -75,9 +75,9 @@ let timing_control_str = (tc) =>
  | TMWait(e) => "wait(" ++ exp_str(e) ++ ")"
  }
 
-let display_args_str = (str, es) => 
+let display_args_str = (str, es) =>
  "\"" ++ str ++ "\"" ++ (Js.Array.length(es) == 0 ? "" : ",\n          ") ++ Js.Array.joinWith("", intersperse(", ", Js.Array.map(exp_or_time_str, es)))
-    
+
 let stmt_str_help = (s) =>
  switch s {
  | StmtTimingControl(tc) => timing_control_str(tc)
@@ -154,7 +154,7 @@ let proc_running_state_str = (s) =>
  | ProcStateFinished => "finished"
  }
 
-let event_nba_str = (e) => 
+let event_nba_str = (e) =>
  switch e {
  | EventNBA(id, var, v) => <li key={ Belt.Int.toString(id) }> { React.string("nba(" ++ var ++ " <= " ++ value_str(v) ++ ")") } </li>
  | _ => Js.Exn.raiseError("impossible")
