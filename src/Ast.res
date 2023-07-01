@@ -183,12 +183,13 @@ type timing_control =
  | TMDelay(int) // e.g., #5 x = 4;
  | TMEvent(event_expression) // e.g., @(posedge clk or negedge rst)
  | TMStar
-// | TMWait <-- TODO
+ | TMWait(exp)
 
 // JS API
 let mk_TMDelay = (i) => TMDelay(i)
 let mk_TMEvent = (ee) => TMEvent(ee)
 let mk_TMStar = TMStar
+let mk_TMWait = (e) => TMWait(e)
 
 type stmt =
  | StmtTimingControl(timing_control)
@@ -198,25 +199,6 @@ type stmt =
  | StmtFinish(exp)
  | StmtGoto(int)
  | StmtGotoUnless(exp, int)
-
-// precond: edge is never EdgeNone
-let rec ee_is_sensitive_to = (ee, var, edge) =>
- switch ee {
- | EEPos(var') => var' == var && edge == EdgePos
- | EENeg(var') => var' == var && edge == EdgeNeg
- | EEEdge(var') => var' == var
- | EENever => false
- | EEOr(ee1, ee2) => ee_is_sensitive_to(ee1, var, edge) || ee_is_sensitive_to(ee2, var, edge)
- }
-
-let tm_is_sensitive_to = (tm, var, ValBit(oldv), ValBit(newv)) =>
- switch tm {
- | StmtTimingControl(TMEvent(ee)) =>
-   let edge = bit_edge(oldv, newv)
-
-   (edge != EdgeNone) && ee_is_sensitive_to(ee, var, edge)
- | _ => false
- }
 
 type cont = { lhs: var, delay: delay, rhs: exp }
 

@@ -80,6 +80,7 @@ let check_timing_control = (s, tc) =>
  | TMDelay(_) => ()
  | TMEvent(ee) => check_event_expression(s, ee)
  | TMStar => ()
+ | TMWait(e) => check_exp(s, e)
 }
 
 let check_exp_or_time = (s, e) =>
@@ -193,7 +194,8 @@ let rec reads_star = (s) =>
 
 let rec writes_star = (s) =>
  switch s {
- | SStmtTimingControl(_, _) => Belt.Set.String.empty
+ | SStmtTimingControl(_, None) => Belt.Set.String.empty
+ | SStmtTimingControl(_, Some(s)) => writes_star(s)
  | SStmtAssn(_, var, _, _) => Belt.Set.String.fromArray([var])
  | SStmtDisplay(_, _) => Belt.Set.String.empty
  | SStmtMonitor(_, _) => Belt.Set.String.empty

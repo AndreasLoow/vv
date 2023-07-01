@@ -32,6 +32,7 @@ const verilogGrammar = ohm.grammar(String.raw`
              | "@" "(" Event_Exp ")" -- event
              | "@" "(" "*" ")" -- star
              | "@" "*" -- star_no_para
+             | "wait" "(" Exp ")" -- wait
 
     Stmt = id "=" Exp ";" -- blocking
          | id "=" Delay Exp ";" -- blocking_delay
@@ -143,6 +144,7 @@ t.addOperation('translate', {
     TimeCont_event(_1, _2, ee, _3) { return Ast.mk_TMEvent(ee.translate()); },
     TimeCont_star(_1, _2, _4, _3) { return Ast.mk_TMStar; },
     TimeCont_star_no_para(_1, _2) { return Ast.mk_TMStar; },
+    TimeCont_wait(_1, _2, e, _3) { return Ast.mk_TMWait(e.translate()); },
 
     Stmt_blocking(e1, _1, e2, _2) { return AstParse.mk_SStmtAssn(Ast.mk_AssnBlocking, e1.translate(), Utils.mk_None, e2.translate()); },
     Stmt_blocking_delay(e1, _1, d, e2, _2) { return AstParse.mk_SStmtAssn(Ast.mk_AssnBlocking, e1.translate(), Utils.mk_Some(d.translate()), e2.translate()); },

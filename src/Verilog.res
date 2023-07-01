@@ -19,6 +19,7 @@ type rec event
  | EventBlockUpdate(event_id, int, string, value) // delayed assignment from block
  | EventNBA(event_id, string, value)
  | EventEvaluation(event_id, int) // run process (e.g., wake up from waiting)
+ | EventDelayedEvaluation(event_id, int) // run process for delayed processes
  | Events(event_id, array<event>) // sequence of events from NBA, must be just EventNBA...
 
 let dest_EventNBA = (e) =>
@@ -33,6 +34,7 @@ let event_key = (e) =>
  | EventBlockUpdate(id, _, _, _) => Belt.Int.toString(id)
  | EventNBA(id, _, _) => Belt.Int.toString(id)
  | EventEvaluation(id, _) => Belt.Int.toString(id)
+ | EventDelayedEvaluation(id, _) => Belt.Int.toString(id)
  | Events(id, _) => Belt.Int.toString(id)
 }
 
@@ -127,6 +129,17 @@ let val_cond = val_bit_lift2(bit_cond)
 let val_is_true = val_bit_bind(bit_is_true)
 let val_is_false = val_bit_bind(bit_is_false)
 let val_edge = val_bit_bind2(bit_edge)
+
+// REF: 12.4
+// If the cond_predicate expression evaluates to true (that is, has a nonzero known value), the first statement
+// shall be executed. If it evaluates to false (that is, has a zero value or the value is x or z), the first
+// statement shall not execute. If there is an else statement and the cond_predicate expression is false, the else
+// statement shall be executed.
+let is_if_true = (ValBit(b)) =>
+ switch b {
+  | BitTrue => true
+  | _ => false
+ }
 
 // Expression eval
 
@@ -311,8 +324,31 @@ let proc_inc_pc = (p, ps) => {
  }
 }
 
-let run_listeners = (s, contI, var, oldv, newv) => {
- if (oldv == newv || s.status == RunningFinals) {
+// precond: edge is never EdgeNone
+let rec ee_is_sensitive_to = (ee, var, edge) =>
+ switch ee {
+ | EEPos(var') => var' == var && edge == EdgePos
+ | EENeg(var') => var' == var && edge == EdgeNeg
+ | EEEdge(var') => var' == var && edge != EdgeNone
+ | EENever => false
+ | EEOr(ee1, ee2) => ee_is_sensitive_to(ee1, var, edge) || ee_is_sensitive_to(ee2, var, edge)
+ }
+
+let tm_is_sensitive_to = (tm, var, env, oldenv) =>
+ switch tm {
+ | StmtTimingControl(TMEvent(ee)) =>
+   let newv = Belt.Map.String.getExn(env, var)
+   let oldv = Belt.Map.String.getExn(oldenv, var) 
+   let edge = val_edge(oldv, newv)
+   ee_is_sensitive_to(ee, var, edge)
+ | StmtTimingControl(TMWait(e)) =>
+   is_if_true(run_exp(env, e))
+ | _ => false
+ }
+
+let run_listeners = (s, contI, var, oldenv) => {
+ if (Belt.Map.String.getExn(s.env, var) == Belt.Map.String.getExn(oldenv, var)
+     || s.status == RunningFinals) {
   // nothing has changed, and also don't run listeners in running-finals mode
   s
  } else {
@@ -358,20 +394,20 @@ let run_listeners = (s, contI, var, oldv, newv) => {
   let toactivate =
    s.proc_env
    |> Js.Array.mapi((ps, i) => (ps, i))
-   |> Js.Array.filter(((ps, i)) => ps.state == ProcStateWaiting &&
-                                   tm_is_sensitive_to(Belt.Array.getExn(Belt.Array.getExn(s.vmodule.procs, i).stmts, ps.pc), var, oldv, newv))
+   |> Js.Array.filter(((ps, i)) => 
+       ps.state == ProcStateWaiting &&
+       tm_is_sensitive_to(Belt.Array.getExn(Belt.Array.getExn(s.vmodule.procs, i).stmts, ps.pc), var, s.env, oldenv))
+   |> Js.Array.map(((ps, i)) => (proc_inc_pc(Belt.Array.getExn(s.vmodule.procs, i), ps), i))
 
-  // todo: this is inefficient... what if nothing has changed...
-  let proc_env = Js.Array.copy(s.proc_env)
+  // micro-optimisation in case nothing has changed
+  let proc_env = toactivate == [] ? s.proc_env : Js.Array.copy(s.proc_env)
+  let _ = Js.Array.forEach(((ps, i)) => Belt.Array.setExn(proc_env, i, ps), toactivate)
 
-  for i in 0 to (Js.Array.length(toactivate)-1) {
-   let (ps, j) = Belt.Array.getExn(toactivate, i)
-   let ps = proc_inc_pc(Belt.Array.getExn(s.vmodule.procs, j), ps)
-
-   let _ = Belt.Array.setExn(proc_env, j, ps)
-  }
-
-  let newevents = Js.Array.map(((_, i)) => EventEvaluation(next_event_id(), i), toactivate)
+  // schedule events for now-running processes
+  let newevents = 
+   toactivate
+   |> Js.Array.filter(((ps, _)) => ps.state == ProcStateRunning)
+   |> Js.Array.map(((_, i)) => EventEvaluation(next_event_id(), i))
   let (ts, queue0) = Belt.Array.getExn(queue, 0)
   let active = Js.Array2.concat(queue0.active, newevents)
   let queue0 = {...queue0, active: active}
@@ -380,17 +416,6 @@ let run_listeners = (s, contI, var, oldv, newv) => {
   {...s, proc_env: proc_env, queue: queue}
  }
 }
-
-// REF: 12.4
-// If the cond_predicate expression evaluates to true (that is, has a nonzero known value), the first statement
-// shall be executed. If it evaluates to false (that is, has a zero value or the value is x or z), the first
-// statement shall not execute. If there is an else statement and the cond_predicate expression is false, the else
-// statement shall be executed.
-let is_if_true = (ValBit(b)) =>
- switch b {
-  | BitTrue => true
-  | _ => false
- }
 
 let step_proc_goto = (s, i, jump) => {
  let proc_env = Js.Array.copy(s.proc_env)
@@ -483,9 +508,8 @@ let rec step_proc = (s, i) => {
  let p = Belt.Array.getExn(s.vmodule.procs, i)
  let ps = Belt.Array.getExn(s.proc_env, i)
 
- switch Belt.Array.getExn(p.stmts,ps.pc) {
- | StmtTimingControl(TMDelay(delay)) => {
-   let ps = proc_inc_pc(p, ps)
+ switch Belt.Array.getExn(p.stmts, ps.pc) {
+ | StmtTimingControl(TMDelay(delay)) =>
    let ps = {...ps, state: ProcStateWaiting}
    let proc_env = Js.Array.copy(s.proc_env)
    let _ = Belt.Array.setExn(proc_env, i, ps)
@@ -494,24 +518,39 @@ let rec step_proc = (s, i) => {
    // saying these kind of delays should go into inactive, but
    // it's logical that it would do and this is also what simulators do
    let region = delay == 0 ? RegionInactive : RegionActive
-   let queue = add_event(s.queue, region, s.time + delay, EventEvaluation(next_event_id(), i))
+   let queue = add_event(s.queue, region, s.time + delay, EventDelayedEvaluation(next_event_id(), i))
    {...s, proc_env: proc_env, queue: queue}
- }
- | StmtTimingControl(TMEvent(_)) => {
+
+ | StmtTimingControl(TMEvent(_)) =>
    let ps = {...ps, state: ProcStateWaiting}
    let proc_env = Js.Array.copy(s.proc_env)
    let _ = Belt.Array.setExn(proc_env, i, ps)
 
    {...s, proc_env: proc_env}
- }
+
+ | StmtTimingControl(TMWait(e)) =>
+   // ASSUMPTION: unclear if we should allow context-switching to
+   // another process here when the condition is already true;
+   // currently we do not allow it
+   let v = run_exp(s.env, e)
+
+   let ps = is_if_true(v)
+            ? proc_inc_pc(p, ps)
+            : {...ps, state: ProcStateWaiting}
+   let proc_env = Js.Array.copy(s.proc_env)
+   let _ = Belt.Array.setExn(proc_env, i, ps)
+
+   {...s, proc_env: proc_env}
+
  | StmtTimingControl(TMStar) =>
    Js.Exn.raiseError("impossible, all stars should have been preprocessed away")
- | StmtAssn(AssnBlocking, var, dopt, e) => {
+
+ | StmtAssn(AssnBlocking, var, dopt, e) =>
    let newv = run_exp(s.env, e)
 
    switch dopt {
    | None =>
-     let oldv = Belt.Map.String.getExn(s.env, var)
+     let oldenv = s.env
      let env = Belt.Map.String.set(s.env, var, newv)
 
      let ps = proc_inc_pc(p, ps)
@@ -519,7 +558,7 @@ let rec step_proc = (s, i) => {
      let _ = Belt.Array.setExn(proc_env, i, ps)
 
      let s = {...s, proc_env: proc_env, env: env}
-     let s = run_listeners(s, -1, var, oldv, newv)
+     let s = run_listeners(s, -1, var, oldenv)
      s
    | Some(d) =>
      let ps = {...ps, state: ProcStateWaiting}
@@ -532,8 +571,8 @@ let rec step_proc = (s, i) => {
 
      {...s, proc_env: proc_env, queue: queue}
    }
- }
- | StmtAssn(AssnNonBlocking, var, dopt, e) => {
+
+ | StmtAssn(AssnNonBlocking, var, dopt, e) =>
    let v = run_exp(s.env, e)
 
    let ps = proc_inc_pc(p, ps)
@@ -544,8 +583,8 @@ let rec step_proc = (s, i) => {
    let queue = add_event(s.queue, RegionNBA, s.time + delay, EventNBA(next_event_id(), var, v))
    let s = {...s, proc_env: proc_env, queue: queue}
    s
- }
- | StmtDisplay(str, es) => {
+
+ | StmtDisplay(str, es) =>
    let (_, output) = run_display(s, str, es, None)
 
    let ps = proc_inc_pc(p, ps)
@@ -554,8 +593,8 @@ let rec step_proc = (s, i) => {
 
    let s = {...s, proc_env: proc_env, output: output}
    s
-  }
- | StmtMonitor(str, es) => {
+
+ | StmtMonitor(str, es) =>
    let monitor = Some(str, es, None)
 
    let ps = proc_inc_pc(p, ps)
@@ -564,7 +603,7 @@ let rec step_proc = (s, i) => {
 
    let s = {...s, proc_env: proc_env, monitor: monitor}
    s
-  }
+
  | StmtFinish(e) =>
    let v = run_exp(s.env, e)
    let oldstatus = s.status
@@ -574,9 +613,11 @@ let rec step_proc = (s, i) => {
    | Running => run_finals(s)
    | _ => s
    }
+
  | StmtGoto(jump) =>
    step_proc_goto(s, i, jump)
- | StmtGotoUnless(e, jump) => {
+
+ | StmtGotoUnless(e, jump) =>
    if is_if_true(run_exp(s.env, e)) {
     let ps = proc_inc_pc(p, ps)
     let proc_env = Js.Array.copy(s.proc_env)
@@ -586,7 +627,6 @@ let rec step_proc = (s, i) => {
    } else {
     step_proc_goto(s, i, jump)
    }
-  }
  }
 }
 
@@ -753,7 +793,6 @@ let run_event = (s:state, ei:int) => {
    let var = Belt.Array.getExn(s.vmodule.conts, i).lhs
    let net = lookupNetExn(s.vmodule.nets, var)
 
-   let oldv = Belt.Map.String.getExn(s.env, var)
    // propagate new driver value to net, i.e., re-run resolution function
    let newv = s.vmodule.conts
             |> Js.Array.mapi((var, i) => (var, i))
@@ -761,22 +800,14 @@ let run_event = (s:state, ei:int) => {
             |> Js.Array.map(((_, i)) => Belt.Array.getExn(cont_env, i))
             |> Utils.reduce0(val_bit_lift2(net_type_res(net.type_)))
    let env = Belt.Map.String.set(s.env, var, newv)
+   let oldenv = s.env
    let s = {...s, cont_env: cont_env, env: env}
 
-   let s = run_listeners(s, i, var, oldv, newv)
+   let s = run_listeners(s, i, var, oldenv)
    s
 
- | EventEvaluation(_, i) =>
-   let ps = Belt.Array.getExn(s.proc_env, i)
-   let ps = {...ps, state: ProcStateRunning}
-   let proc_env = Js.Array.copy(s.proc_env)
-   let _ = Belt.Array.setExn(proc_env, i, ps)
-   let s = {...s, proc_env: proc_env}
-
-   steps_proc(s, i)
-
  | EventBlockUpdate(_, i, var, newv) =>
-   let oldv = Belt.Map.String.getExn(s.env, var)
+   let oldenv = s.env
    let env = Belt.Map.String.set(s.env, var, newv)
 
    let ps = Belt.Array.getExn(s.proc_env, i)
@@ -786,8 +817,21 @@ let run_event = (s:state, ei:int) => {
    let _ = Belt.Array.setExn(proc_env, i, ps)
 
    let s = {...s, proc_env: proc_env, env: env}
-   let s = run_listeners(s, -1, var, oldv, newv)
+   let s = run_listeners(s, -1, var, oldenv)
  
+   steps_proc(s, i)
+
+ | EventEvaluation(_, i) =>
+   steps_proc(s, i)
+
+ | EventDelayedEvaluation(_, i) =>
+   let p = Belt.Array.getExn(s.vmodule.procs, i)
+   let ps = Belt.Array.getExn(s.proc_env, i)
+   let ps = proc_inc_pc(p, ps)
+   let proc_env = Js.Array.copy(s.proc_env)
+   let _ = Belt.Array.setExn(proc_env, i, ps)
+   let s = {...s, proc_env: proc_env}
+
    steps_proc(s, i)
 
  | Events(_, es) =>
@@ -795,10 +839,10 @@ let run_event = (s:state, ei:int) => {
    let e = Js.Array.shift(es)
    let e = Js.Option.getExn(e)
    let (var, newv) = dest_EventNBA(e)
-   let oldv = Belt.Map.String.getExn(s.env, var)
+   let oldenv = s.env
    let env = Belt.Map.String.set(s.env, var, newv)
    let s = {...s, env: env}
-   let s = run_listeners(s, -1, var, oldv, newv)
+   let s = run_listeners(s, -1, var, oldenv)
    s
 
  | EventNBA(_, _, _) =>

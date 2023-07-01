@@ -62,6 +62,7 @@ let timing_control_str = (tc) =>
  | TMDelay(d) => "#" ++ Belt.Int.toString(d) //delay_str(d)
  | TMEvent(e) => "@(" ++ event_expression_str(e) ++ ")"
  | TMStar => "@(*)"
+ | TMWait(e) => "wait(" ++ exp_str(e) ++ ")"
  }
 
 let display_args_str = (str, es) => 
@@ -154,6 +155,7 @@ let event_str = (ps, e) => {
  | EventContUpdate(_, i, v) => React.string("update(" ++ Belt.Array.getExn(ps, i).lhs ++ "(" ++ Belt.Int.toString(i) ++ ")): " ++ value_str(v))
  | EventBlockUpdate(_, i, var, v) => React.string("eval(proc: " ++ Belt.Int.toString(i + 1) ++ ", " ++ var ++ " = " ++ value_str(v) ++ ")")
  | EventEvaluation(_, i) => React.string("eval(proc: " ++ Belt.Int.toString(i + 1) ++ ")")
+ | EventDelayedEvaluation(_, i) => React.string("eval-d(proc: " ++ Belt.Int.toString(i + 1) ++ ")")
  | EventNBA(_, var, v) => React.string("nba(" ++ var ++ " <= " ++ value_str(v) ++ ")")
  | Events(_, es) => <ol> {React.string("NBA events:")} { React.array(Belt.Array.map(es, event_nba_str)) } </ol>
  }
