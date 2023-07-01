@@ -25,7 +25,7 @@ type value_or_time = VTValue(value) | VTTime(int)
 type var = string
 
 // logical ops are lazy, "bitwise" are not
-type op2 = LAnd | LOr | BAnd | BOr | BXOr | Add
+type op2 = LAnd | LOr | BAnd | BOr | BXOr | Add | Eq | NEq
 
 type rec exp =
   | ExpVal(value)
@@ -44,6 +44,8 @@ let mk_ExpOp2_BAnd = (e1, e2) => ExpOp2(e1, BAnd, e2)
 let mk_ExpOp2_BOr = (e1, e2) => ExpOp2(e1, BOr, e2)
 let mk_ExpOp2_BXOr = (e1, e2) => ExpOp2(e1, BXOr, e2)
 let mk_ExpOp2_Add = (e1, e2) => ExpOp2(e1, Add, e2)
+let mk_ExpOp2_Eq = (e1, e2) => ExpOp2(e1, Eq, e2)
+let mk_ExpOp2_NEq = (e1, e2) => ExpOp2(e1, NEq, e2)
 let mk_ExpCond = (e1, e2, e3) => ExpCond(e1, e2, e3)
 
 type exp_or_time = ETExp(exp) | ETTime
@@ -155,20 +157,19 @@ type assn_type = AssnBlocking | AssnNonBlocking
 let mk_AssnBlocking = AssnBlocking
 let mk_AssnNonBlocking = AssnNonBlocking
 
-// todo: vars can actually be general exps...
 // always_comb, @*, @(*) are pre-processed away
 type rec event_expression =
- | EEPos(var) // posedge
- | EENeg(var) // negedge
- | EEEdge(var) // any edge
+ | EEPos(exp) // posedge
+ | EENeg(exp) // negedge
+ | EEEdge(exp) // any edge
  | EENever // hard-coded never, just needed since we restrict other cases to vars
  | EEOr(event_expression, event_expression) // "or" or ","
  // | iff <-- todo?
 
 // JS API
-let mk_EEPos = (var) => EEPos(var)
-let mk_EENeg = (var) => EENeg(var)
-let mk_EEEdge = (var) => EEEdge(var)
+let mk_EEPos = (e) => EEPos(e)
+let mk_EENeg = (e) => EENeg(e)
+let mk_EEEdge = (e) => EEEdge(e)
 let mk_EEOr = (e1, e2) => EEOr(e1, e2)
 
 let event_expression_fromArray = (xs) =>

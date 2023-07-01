@@ -16,6 +16,8 @@ let op2_str = (op) =>
  | BOr => "|"
  | BXOr => "^"
  | Add => "+"
+ | Eq => "=="
+ | NEq => "!="
  }
 
 // TODO: Handle parens better
@@ -23,9 +25,17 @@ let rec exp_str = (e) =>
  switch (e) {
  | ExpVal(v) => value_str(v)
  | ExpVar(var) => var
- | ExpNot(e) => "!(" ++ exp_str(e) ++ ")"
- | ExpOp2(e1, op, e2) => "(" ++ exp_str(e1) ++ ") " ++ op2_str(op) ++ " (" ++ exp_str(e2) ++ ")"
- | ExpCond(e1, e2, e3) => "(" ++ exp_str(e1) ++ ") ? ("  ++ exp_str(e2) ++ ") : (" ++ exp_str(e3) ++ ")"
+ | ExpNot(e) => "!" ++ exp_str_par(e)
+ | ExpOp2(e1, op, e2) => exp_str_par(e1) ++ " " ++ op2_str(op) ++ " " ++ exp_str_par(e2)
+ | ExpCond(e1, e2, e3) => exp_str_par(e1) ++ " ? "  ++ exp_str_par(e2) ++ " : " ++ exp_str_par(e3)
+ }
+
+and exp_str_par = (e) =>
+ switch e {
+ | ExpVal(_) => exp_str(e)
+ | ExpVar(_) => exp_str(e)
+ | ExpNot(_) => exp_str(e)
+ | _ => "(" ++ exp_str(e) ++ ")"
  }
 
 let exp_or_time_str = (e) =>
@@ -48,13 +58,13 @@ let delay_opt_str = (dopt) =>
  | Some(d) => delay_str(d) ++ " "
  }
 
-let rec event_expression_str = (e) =>
- switch e {
- | EEPos(var) => "posedge " ++ var
- | EENeg(var) => "negedge " ++ var
- | EEEdge(var) => var
+let rec event_expression_str = (ee) =>
+ switch ee {
+ | EEPos(e) => "posedge " ++ exp_str(e)
+ | EENeg(e) => "negedge " ++ exp_str(e)
+ | EEEdge(e) => exp_str(e)
  | EENever => "0"
- | EEOr(e1, e2) => event_expression_str(e1) ++ " or " ++ event_expression_str(e2)
+ | EEOr(ee1, ee2) => event_expression_str(ee1) ++ " or " ++ event_expression_str(ee2)
  }
 
 let timing_control_str = (tc) =>

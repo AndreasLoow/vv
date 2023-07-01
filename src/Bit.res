@@ -147,3 +147,25 @@ let bit_cond = (v1, v2) =>
  | (BitFalse, BitFalse) => BitFalse
  | _ => BitX
  }
+
+// REF: 11.4.5 Equality operators
+let bit_eq = (v1, v2) =>
+ switch (v1, v2) {
+ | (BitFalse, BitFalse) => BitTrue
+ | (BitFalse, BitTrue) => BitFalse
+ | (BitTrue, BitFalse) => BitFalse
+ | (BitTrue, BitTrue) => BitTrue
+
+ | _ => BitX
+ }
+
+// REF: 11.4.5 Equality operators
+let bit_neq = (v1, v2) =>
+ switch (v1, v2) {
+ | (BitFalse, BitFalse) => BitFalse
+ | (BitFalse, BitTrue) => BitTrue
+ | (BitTrue, BitFalse) => BitTrue
+ | (BitTrue, BitTrue) => BitFalse
+
+ | _ => BitX
+ }

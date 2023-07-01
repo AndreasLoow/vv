@@ -68,9 +68,9 @@ let rec check_exp = (s, e) =>
 
 let rec check_event_expression = (s, ee) =>
  switch ee {
- | EEPos(var) => check_decl(s, var)
- | EENeg(var) => check_decl(s, var)
- | EEEdge(var) => check_decl(s, var)
+ | EEPos(e) => check_exp(s, e)
+ | EENeg(e) => check_exp(s, e)
+ | EEEdge(e) => check_exp(s, e)
  | EENever => ()
  | EEOr(ee1, ee2) => Js.Array.forEach(check_event_expression(s), [ee1, ee2])
 }
@@ -210,7 +210,7 @@ let normalise_always_comb = (s) => {
  let write_vars = writes_star(s)
  let vars = Belt.Set.String.removeMany(read_vars, Belt.Set.String.toArray(write_vars))
           |> Belt.Set.String.toArray
-          |> Js.Array.map((e) => EEEdge(e))
+          |> Js.Array.map((e) => EEEdge(ExpVar(e)))
           |> event_expression_fromArray
  let ee = switch vars {
   | None => EENever
@@ -226,7 +226,7 @@ let rec preprocess_star = (s) =>
     let s = preprocess_star(s)
     let ee = reads_star(s)
            |> Belt.Set.String.toArray
-           |> Js.Array.map((e) => EEEdge(e))
+           |> Js.Array.map((e) => EEEdge(ExpVar(e)))
            |> event_expression_fromArray
     let ee = switch ee {
              | None => EENever

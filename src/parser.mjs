@@ -65,9 +65,9 @@ const verilogGrammar = ohm.grammar(String.raw`
 
     Event_Exp = Event_Exp ("or" | ",") Event_Exp1 -- or
                | Event_Exp1
-    Event_Exp1 = "posedge" id -- posedge
-               | "negedge" id -- negedge
-               | id -- id
+    Event_Exp1 = "posedge" Exp -- posedge
+               | "negedge" Exp -- negedge
+               | Exp -- exp
 
     // REF: 11.3.2 Operator precedence
     Exp = Exp1 "?" Exp ":" Exp -- cond
@@ -88,13 +88,17 @@ const verilogGrammar = ohm.grammar(String.raw`
     Exp5 = Exp5 "&" Exp6 -- band
          | Exp6
 
-    Exp6 = Exp6 "+" Exp7 -- add
+    Exp6 = Exp6 "==" Exp7 -- eq
+         | Exp6 "!=" Exp7 -- neq
          | Exp7
 
-    Exp7 = ("!" | "~") Exp7 -- not
+    Exp7 = Exp7 "+" Exp8 -- add
          | Exp8
 
-    Exp8 = id -- id
+    Exp8 = ("!" | "~") Exp8 -- not
+         | Exp9
+
+    Exp9 = id -- id
          | bit -- bit
          | "0" -- zero
          | "1" -- one
@@ -176,9 +180,9 @@ t.addOperation('translate', {
     Event_Exp(e) { return e.translate(); },
     Event_Exp_or(e1, _1, e2) { return Ast.mk_EEOr(e1.translate(), e2.translate()); },
 
-    Event_Exp1_id(id) { return Ast.mk_EEEdge(id.translate()); },
-    Event_Exp1_posedge(_, id) { return Ast.mk_EEPos(id.translate()); },
-    Event_Exp1_negedge(_, id) { return Ast.mk_EENeg(id.translate()); },
+    Event_Exp1_exp(e) { return Ast.mk_EEEdge(e.translate()); },
+    Event_Exp1_posedge(_, e) { return Ast.mk_EEPos(e.translate()); },
+    Event_Exp1_negedge(_, e) { return Ast.mk_EENeg(e.translate()); },
 
     Exp(e1) { return e1.translate(); },
     Exp_cond(e1, _1, e2, _2, e3) { return Ast.mk_ExpCond(e1.translate(), e2.translate(), e3.translate()); },
@@ -199,16 +203,20 @@ t.addOperation('translate', {
     Exp5_band(e1, _, e2) { return Ast.mk_ExpOp2_BAnd(e1.translate(), e2.translate()); },
 
     Exp6(e1) { return e1.translate(); },
-    Exp6_add(e1, _, e2) { return Ast.mk_ExpOp2_Add(e1.translate(), e2.translate()); },
+    Exp6_eq(e1, _, e2) { return Ast.mk_ExpOp2_Eq(e1.translate(), e2.translate()); },
+    Exp6_neq(e1, _, e2) { return Ast.mk_ExpOp2_NEq(e1.translate(), e2.translate()); },
 
     Exp7(e1) { return e1.translate(); },
-    Exp7_not(_1, e1) { return Ast.mk_ExpNot(e1.translate()); },
+    Exp7_add(e1, _, e2) { return Ast.mk_ExpOp2_Add(e1.translate(), e2.translate()); },
 
-    Exp8_id(e1) { return Ast.mk_ExpVar(e1.translate()); },
-    Exp8_bit(e1) { return Ast.mk_ExpVal(e1.translate()); },
-    Exp8_zero(_) { return Ast.mk_ExpVal(Ast.mk_ValBit(Bit.mk_BitFalse)); },
-    Exp8_one(_) { return Ast.mk_ExpVal(Ast.mk_ValBit(Bit.mk_BitTrue)); },
-    Exp8_paren(_1, e1, _2) { return e1.translate(); },
+    Exp8(e1) { return e1.translate(); },
+    Exp8_not(_1, e1) { return Ast.mk_ExpNot(e1.translate()); },
+
+    Exp9_id(e1) { return Ast.mk_ExpVar(e1.translate()); },
+    Exp9_bit(e1) { return Ast.mk_ExpVal(e1.translate()); },
+    Exp9_zero(_) { return Ast.mk_ExpVal(Ast.mk_ValBit(Bit.mk_BitFalse)); },
+    Exp9_one(_) { return Ast.mk_ExpVal(Ast.mk_ValBit(Bit.mk_BitTrue)); },
+    Exp9_paren(_1, e1, _2) { return e1.translate(); },
 
     ExpOrTime_exp(e) { return Ast.mk_ETExp(e.translate()); },
     ExpOrTime_time(_) { return Ast.mk_ETTime; },

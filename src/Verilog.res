@@ -125,6 +125,8 @@ let val_and = val_bit_lift2(bit_and)
 let val_or = val_bit_lift2(bit_or)
 let val_xor = val_bit_lift2(bit_xor)
 let val_add = val_bit_lift2(bit_add)
+let val_eq = val_bit_lift2(bit_eq)
+let val_neq = val_bit_lift2(bit_neq)
 let val_cond = val_bit_lift2(bit_cond)
 let val_is_true = val_bit_bind(bit_is_true)
 let val_is_false = val_bit_bind(bit_is_false)
@@ -187,6 +189,8 @@ let rec run_exp = (env, e) =>
    | BOr => val_or(v1, v2)
    | BXOr => val_xor(v1, v2)
    | Add => val_add(v1, v2)
+   | Eq => val_eq(v1, v2)
+   | NEq => val_neq(v1, v2)
    }
  | ExpCond(e1, e2, e3) =>
    let v1 = run_exp(env, e1)
@@ -324,23 +328,31 @@ let proc_inc_pc = (p, ps) => {
  }
 }
 
-// precond: edge is never EdgeNone
-let rec ee_is_sensitive_to = (ee, var, edge) =>
+let rec ee_is_sensitive_to = (ee, env, oldenv) =>
  switch ee {
- | EEPos(var') => var' == var && edge == EdgePos
- | EENeg(var') => var' == var && edge == EdgeNeg
- | EEEdge(var') => var' == var && edge != EdgeNone
- | EENever => false
- | EEOr(ee1, ee2) => ee_is_sensitive_to(ee1, var, edge) || ee_is_sensitive_to(ee2, var, edge)
+ | EEPos(e) => 
+   let newv = run_exp(env, e)
+   let oldv = run_exp(oldenv, e)
+   val_edge(oldv, newv) == EdgePos
+ | EENeg(e) => 
+   let newv = run_exp(env, e)
+   let oldv = run_exp(oldenv, e)
+   val_edge(oldv, newv) == EdgeNeg
+ | EEEdge(e) => 
+   let newv = run_exp(env, e)
+   let oldv = run_exp(oldenv, e)
+   val_edge(oldv, newv) != EdgeNone
+ | EENever =>
+   false
+ | EEOr(ee1, ee2) =>
+   ee_is_sensitive_to(ee1, env, oldenv) ||
+   ee_is_sensitive_to(ee2, env, oldenv)
  }
 
-let tm_is_sensitive_to = (tm, var, env, oldenv) =>
+let tm_is_sensitive_to = (tm, env, oldenv) =>
  switch tm {
  | StmtTimingControl(TMEvent(ee)) =>
-   let newv = Belt.Map.String.getExn(env, var)
-   let oldv = Belt.Map.String.getExn(oldenv, var) 
-   let edge = val_edge(oldv, newv)
-   ee_is_sensitive_to(ee, var, edge)
+   ee_is_sensitive_to(ee, env, oldenv)
  | StmtTimingControl(TMWait(e)) =>
    is_if_true(run_exp(env, e))
  | _ => false
@@ -396,7 +408,7 @@ let run_listeners = (s, contI, var, oldenv) => {
    |> Js.Array.mapi((ps, i) => (ps, i))
    |> Js.Array.filter(((ps, i)) => 
        ps.state == ProcStateWaiting &&
-       tm_is_sensitive_to(Belt.Array.getExn(Belt.Array.getExn(s.vmodule.procs, i).stmts, ps.pc), var, s.env, oldenv))
+       tm_is_sensitive_to(Belt.Array.getExn(Belt.Array.getExn(s.vmodule.procs, i).stmts, ps.pc), s.env, oldenv))
    |> Js.Array.map(((ps, i)) => (proc_inc_pc(Belt.Array.getExn(s.vmodule.procs, i), ps), i))
 
   // micro-optimisation in case nothing has changed
