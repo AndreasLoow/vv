@@ -80,7 +80,6 @@ let check_timing_control = (s, tc) =>
  | TMDelay(_) => ()
  | TMEvent(ee) => check_event_expression(s, ee)
  | TMStar => ()
- | TMWait(e) => check_exp(s, e)
 }
 
 let check_exp_or_time = (s, e) =>
@@ -122,6 +121,12 @@ let rec check_stmt = (env_prev, new_style, s, stm) =>
  switch stm {
  | SStmtTimingControl(tc, stm) =>
     check_timing_control(s, tc)
+    switch stm {
+    | Some(stm) => check_stmt(env_prev, new_style, s, stm)
+    | None => s
+    }
+ | SStmtWait(e, stm) =>
+    check_exp(s, e)
     switch stm {
     | Some(stm) => check_stmt(env_prev, new_style, s, stm)
     | None => s
@@ -183,6 +188,8 @@ let rec reads_star = (s) =>
  switch s {
  | SStmtTimingControl(_, None) => Belt.Set.String.empty
  | SStmtTimingControl(_, Some(s)) => reads_star(s)
+ | SStmtWait(_, None) => Belt.Set.String.empty
+ | SStmtWait(_, Some(s)) => reads_star(s)
  | SStmtAssn(_, _, _, e) => reads_star_exp(e)
  | SStmtDisplay(_, es) => Utils.unions(Js.Array.map(reads_star_exp_or_time, es))
  | SStmtMonitor(_, es) => Utils.unions(Js.Array.map(reads_star_exp_or_time, es))
@@ -196,6 +203,8 @@ let rec writes_star = (s) =>
  switch s {
  | SStmtTimingControl(_, None) => Belt.Set.String.empty
  | SStmtTimingControl(_, Some(s)) => writes_star(s)
+ | SStmtWait(_, None) => Belt.Set.String.empty
+ | SStmtWait(_, Some(s)) => writes_star(s)
  | SStmtAssn(_, var, _, _) => Belt.Set.String.fromArray([var])
  | SStmtDisplay(_, _) => Belt.Set.String.empty
  | SStmtMonitor(_, _) => Belt.Set.String.empty
@@ -244,7 +253,9 @@ let rec preprocess_star = (s) =>
 let rec num_ec = (pt, s) =>
  switch s {
  | SStmtTimingControl(TMDelay(_), _) => raise(ElaboratorError("Time control not allowed inside " ++ Pp.proc_type_str(pt)))
- | SStmtTimingControl(_, _) => 1
+ | SStmtTimingControl(_, None) => 1
+ | SStmtTimingControl(_, Some(s)) => 1 + num_ec(pt, s)
+ | SStmtWait(_, _) => raise(ElaboratorError("Wait statement not allowed inside " ++ Pp.proc_type_str(pt)))
  | SStmtAssn(_, _, Some(_), _) => raise(ElaboratorError("Delayed assignments not allowed inside " ++ Pp.proc_type_str(pt)))
  | SStmtAssn(_, _, _, _) => 0
  | SStmtDisplay(_, _) => 0
@@ -274,7 +285,7 @@ let preprocess_proc = (pt, stm) =>
 let elaborate_cont_delay = (d) =>
  switch d {
  | Delay0 => None
- | Delay1(d) => d == 0 ? None : Some(Delay1(d))
+ | Delay1(d) => d == 0 ? None : Some(d)
  | _ => raise(ElaboratorError("Delay type not supported in continuously assignments to variables yet"))
 }
 

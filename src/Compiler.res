@@ -83,6 +83,9 @@ let rec compile_stmt = (s) => {
  | SStmtTimingControl(tc, None) => [StmtTimingControl(tc)]
  | SStmtTimingControl(tc, Some(s)) => Js.Array2.concat([StmtTimingControl(tc)],
                                                        compile_stmt(s))
+ | SStmtWait(e, None) => [StmtWait(e)]
+ | SStmtWait(e, Some(s)) => Js.Array2.concat([StmtWait(e)],
+                                             compile_stmt(s))
  | SStmtAssn(assn_type, var, d, exp) => [StmtAssn(assn_type, var, d, exp)]
 
  | SStmtDisplay(str, es) => [StmtDisplay(str, es)]

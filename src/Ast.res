@@ -184,17 +184,16 @@ type timing_control =
  | TMDelay(int) // e.g., #5 x = 4;
  | TMEvent(event_expression) // e.g., @(posedge clk or negedge rst)
  | TMStar
- | TMWait(exp)
 
 // JS API
 let mk_TMDelay = (i) => TMDelay(i)
 let mk_TMEvent = (ee) => TMEvent(ee)
 let mk_TMStar = TMStar
-let mk_TMWait = (e) => TMWait(e)
 
 type stmt =
  | StmtTimingControl(timing_control)
- | StmtAssn(assn_type, var, option<delay>, exp)
+ | StmtWait(exp)
+ | StmtAssn(assn_type, var, option<int>, exp)
  | StmtDisplay(string, array<exp_or_time>)
  | StmtMonitor(string, array<exp_or_time>)
  | StmtFinish(exp)

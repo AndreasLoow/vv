@@ -55,7 +55,7 @@ let delay_str = (d) =>
 let delay_opt_str = (dopt) =>
  switch dopt {
  | None => ""
- | Some(d) => delay_str(d) ++ " "
+ | Some(d) => "#" ++ Belt.Int.toString(d) ++ " "
  }
 
 let rec event_expression_str = (ee) =>
@@ -72,7 +72,6 @@ let timing_control_str = (tc) =>
  | TMDelay(d) => "#" ++ Belt.Int.toString(d) //delay_str(d)
  | TMEvent(e) => "@(" ++ event_expression_str(e) ++ ")"
  | TMStar => "@(*)"
- | TMWait(e) => "wait(" ++ exp_str(e) ++ ")"
  }
 
 let display_args_str = (str, es) =>
@@ -81,6 +80,7 @@ let display_args_str = (str, es) =>
 let stmt_str_help = (s) =>
  switch s {
  | StmtTimingControl(tc) => timing_control_str(tc)
+ | StmtWait(e) => "wait(" ++ exp_str(e) ++ ")"
  | StmtAssn(AssnBlocking, var, dopt, e) => var ++ " = " ++ delay_opt_str(dopt) ++ exp_str(e)
  | StmtAssn(AssnNonBlocking, var, dopt, e) => var ++ " <= " ++ delay_opt_str(dopt) ++ exp_str(e)
  | StmtDisplay(str, es) => "$display(" ++ display_args_str(str, es) ++ ")"

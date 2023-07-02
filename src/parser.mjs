@@ -28,16 +28,22 @@ const verilogGrammar = ohm.grammar(String.raw`
 
         | ProcType Stmt -- proc
 
-    TimeCont = "#" number -- delay
+    MinTypMax = number ":" number ":" number -- full
+              | number -- single
+
+    DelayCont = "#" number -- single
+              | "#" "(" MinTypMax ")" -- mintypmax
+
+    TimeCont = DelayCont -- delay
+             | "@" id -- id
              | "@" "(" Event_Exp ")" -- event
              | "@" "(" "*" ")" -- star
              | "@" "*" -- star_no_para
-             | "wait" "(" Exp ")" -- wait
 
     Stmt = id "=" Exp ";" -- blocking
-         | id "=" Delay Exp ";" -- blocking_delay
+         | id "=" DelayCont Exp ";" -- blocking_delay
          | id "<=" Exp ";" -- nonblocking
-         | id "<=" Delay Exp ";" -- nonblocking_delay
+         | id "<=" DelayCont Exp ";" -- nonblocking_delay
 
          | "if" "(" Exp ")" Stmt "else" Stmt -- if_else
          | "if" "(" Exp ")" Stmt -- if
@@ -54,11 +60,14 @@ const verilogGrammar = ohm.grammar(String.raw`
          | TimeCont Stmt -- time_stmt
          | TimeCont ";" -- time
 
+         | "wait" "(" Exp ")" Stmt -- wait_stmt
+         | "wait" "(" Exp ")" ";" -- wait
+
          | "begin" Stmt* "end" -- block
 
-    Delay = "#" "(" number "," number "," number ")" -- three
-          | "#" "(" number "," number ")" -- two
-          | "#" "(" number ")" -- one
+    Delay = "#" "(" MinTypMax "," MinTypMax "," MinTypMax ")" -- three
+          | "#" "(" MinTypMax "," MinTypMax ")" -- two
+          | "#" "(" MinTypMax ")" -- one
           | "#" number -- one_no_para
 
     WireType = "wire" | "tri" | "wand" | "triand" | "wor" | "trior"
@@ -67,6 +76,7 @@ const verilogGrammar = ohm.grammar(String.raw`
                | Event_Exp1
     Event_Exp1 = "posedge" Exp -- posedge
                | "negedge" Exp -- negedge
+               | "edge" Exp -- edge
                | Exp -- exp
 
     // REF: 11.3.2 Operator precedence
@@ -144,11 +154,17 @@ t.addOperation('translate', {
 
     WireType(_) { return this.sourceString; },
 
-    TimeCont_delay(_1, d) { return Ast.mk_TMDelay(d.translate()); },
+    MinTypMax_full(_1, _2, n, _3, _4) { return n.translate(); },
+    MinTypMax_single(n) { return n.translate(); },
+
+    DelayCont_single(_1, n) { return n.translate(); },
+    DelayCont_mintypmax(_1, _2, mtm, _3) { return mtm.translate(); },
+
+    TimeCont_delay(dc) { return Ast.mk_TMDelay(dc.translate()); },
+    TimeCont_id(_1, id) { return Ast.mk_TMEvent(Ast.mk_EEEdge(Ast.mk_ExpVar(id.translate()))); },
     TimeCont_event(_1, _2, ee, _3) { return Ast.mk_TMEvent(ee.translate()); },
     TimeCont_star(_1, _2, _4, _3) { return Ast.mk_TMStar; },
     TimeCont_star_no_para(_1, _2) { return Ast.mk_TMStar; },
-    TimeCont_wait(_1, _2, e, _3) { return Ast.mk_TMWait(e.translate()); },
 
     Stmt_blocking(e1, _1, e2, _2) { return AstParse.mk_SStmtAssn(Ast.mk_AssnBlocking, e1.translate(), Utils.mk_None, e2.translate()); },
     Stmt_blocking_delay(e1, _1, d, e2, _2) { return AstParse.mk_SStmtAssn(Ast.mk_AssnBlocking, e1.translate(), Utils.mk_Some(d.translate()), e2.translate()); },
@@ -170,6 +186,9 @@ t.addOperation('translate', {
     Stmt_time_stmt(tm, s) { return AstParse.mk_SStmtTimingControl(tm.translate(), Utils.mk_Some(s.translate())); },
     Stmt_time(tm, _1) { return AstParse.mk_SStmtTimingControl(tm.translate(), Utils.mk_None); },
 
+    Stmt_wait_stmt(_1, _2, e, _3, s) { return AstParse.mk_SStmtWait(e.translate(), Utils.mk_Some(s.translate())); },
+    Stmt_wait(_1, _2, e, _3, _4) { return AstParse.mk_SStmtWait(e.translate(), Utils.mk_None); },
+
     Stmt_block(_1, ss, _2) { return AstParse.mk_SSBlock(ss.children.map(s => s.translate())); },
 
     Delay_one(_1, _2, d1, _3) { return Ast.mk_Delay1(d1.translate()); },
@@ -183,6 +202,7 @@ t.addOperation('translate', {
     Event_Exp1_exp(e) { return Ast.mk_EEEdge(e.translate()); },
     Event_Exp1_posedge(_, e) { return Ast.mk_EEPos(e.translate()); },
     Event_Exp1_negedge(_, e) { return Ast.mk_EENeg(e.translate()); },
+    Event_Exp1_edge(_, e) { return Ast.mk_EEEdge(e.translate()); },
 
     Exp(e1) { return e1.translate(); },
     Exp_cond(e1, _1, e2, _2, e3) { return Ast.mk_ExpCond(e1.translate(), e2.translate(), e3.translate()); },

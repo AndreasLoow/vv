@@ -349,11 +349,11 @@ let rec ee_is_sensitive_to = (ee, env, oldenv) =>
    ee_is_sensitive_to(ee2, env, oldenv)
  }
 
-let tm_is_sensitive_to = (tm, env, oldenv) =>
+let stm_is_sensitive_to = (tm, env, oldenv) =>
  switch tm {
  | StmtTimingControl(TMEvent(ee)) =>
    ee_is_sensitive_to(ee, env, oldenv)
- | StmtTimingControl(TMWait(e)) =>
+ | StmtWait(e) =>
    is_if_true(run_exp(env, e))
  | _ => false
  }
@@ -375,8 +375,9 @@ let run_listeners = (s, contI, var, oldenv) => {
 
   let replace_update_event = (queue, (delay, (i, v))) => {
     let delay = calculate_event_delay(s.vmodule.nets, Belt.Array.getExn(s.vmodule.conts, i).lhs, delay)
-    // ASSUMPTION: The "to value" is the new value of the driver, not the new value (= result of resolution function)
-    //             of the net.
+    // ASSUMPTION: The "to value" is the new value of the driver,
+    //             not the new value (= result of resolution function) of the net.
+    //             This is what simulators do as well.
     let d = delay_value(delay, v)
     let md = delay_max(delay)
 
@@ -408,7 +409,7 @@ let run_listeners = (s, contI, var, oldenv) => {
    |> Js.Array.mapi((ps, i) => (ps, i))
    |> Js.Array.filter(((ps, i)) =>
        ps.state == ProcStateWaiting &&
-       tm_is_sensitive_to(Belt.Array.getExn(Belt.Array.getExn(s.vmodule.procs, i).stmts, ps.pc), s.env, oldenv))
+       stm_is_sensitive_to(Belt.Array.getExn(Belt.Array.getExn(s.vmodule.procs, i).stmts, ps.pc), s.env, oldenv))
    |> Js.Array.map(((ps, i)) => (proc_inc_pc(Belt.Array.getExn(s.vmodule.procs, i), ps), i))
 
   // micro-optimisation in case nothing has changed
@@ -540,7 +541,7 @@ let rec step_proc = (s, i) => {
 
    {...s, proc_env: proc_env}
 
- | StmtTimingControl(TMWait(e)) =>
+ | StmtWait(e) =>
    // ASSUMPTION: unclear if we should allow context-switching to
    // another process here when the condition is already true;
    // currently we do not allow it
@@ -572,12 +573,11 @@ let rec step_proc = (s, i) => {
      let s = {...s, proc_env: proc_env, env: env}
      let s = run_listeners(s, -1, var, oldenv)
      s
-   | Some(d) =>
+   | Some(delay) =>
      let ps = {...ps, state: ProcStateWaiting}
      let proc_env = Js.Array.copy(s.proc_env)
      let _ = Belt.Array.setExn(proc_env, i, ps)
 
-     let delay = delay_value(d, newv)
      let region = delay == 0 ? RegionInactive : RegionActive
      let queue = add_event(s.queue, region, s.time + delay, EventBlockUpdate(next_event_id(), i, var, newv))
 
@@ -590,7 +590,7 @@ let rec step_proc = (s, i) => {
    let ps = proc_inc_pc(p, ps)
    let proc_env = Js.Array.copy(s.proc_env)
    let _ = Belt.Array.setExn(proc_env, i, ps)
-   let delay = opt_delay_value(dopt, v)
+   let delay = Belt.Option.getWithDefault(dopt, 0)
 
    let queue = add_event(s.queue, RegionNBA, s.time + delay, EventNBA(next_event_id(), var, v))
    let s = {...s, proc_env: proc_env, queue: queue}

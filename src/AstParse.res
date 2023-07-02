@@ -4,7 +4,8 @@ open Ast
 
 type rec stmt_structured =
  | SStmtTimingControl(timing_control, option<stmt_structured>)
- | SStmtAssn(assn_type, var, option<delay>, exp)
+ | SStmtWait(exp, option<stmt_structured>)
+ | SStmtAssn(assn_type, var, option<int>, exp)
  | SStmtDisplay(string, array<exp_or_time>)
  | SStmtMonitor(string, array<exp_or_time>)
  | SStmtFinish(exp)
@@ -14,6 +15,7 @@ type rec stmt_structured =
 
 // JS API
 let mk_SStmtTimingControl = (tc, opts) => SStmtTimingControl(tc, opts)
+let mk_SStmtWait = (e, opts) => SStmtWait(e, opts)
 let mk_SStmtAssn = (at, v, d, e) => SStmtAssn(at, v, d, e)
 let mk_SStmtDisplay = (str, es) => SStmtDisplay(str, es)
 let mk_SStmtMonitor = (str, es) => SStmtMonitor(str, es)
