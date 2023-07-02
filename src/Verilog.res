@@ -527,9 +527,6 @@ let rec step_proc = (s, i) => {
    let proc_env = Js.Array.copy(s.proc_env)
    let _ = Belt.Array.setExn(proc_env, i, ps)
 
-   // ASSUMPTION: Actually haven't found a place in the standard
-   // saying these kind of delays should go into inactive, but
-   // it's logical that it would do and this is also what simulators do
    let region = delay == 0 ? RegionInactive : RegionActive
    let queue = add_event(s.queue, region, s.time + delay, EventDelayedEvaluation(next_event_id(), i))
    {...s, proc_env: proc_env, queue: queue}
