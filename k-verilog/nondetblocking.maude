@@ -1,0 +1,21 @@
+load deterministic-continuous-assignment-semantics .
+
+mod SEMANTICS-TEST is
+  extending SEMANTICS .
+ 
+  ops nondetblocking a : -> Name [ctor] .
+endm
+
+search [
+module nondetblocking ;
+
+ reg [1 : 0] a ;
+
+ initial begin
+  a <= i(1) ;
+  a <= i(2) ;
+ end
+
+ always @* $display(a) ;
+
+endmodule ] =>* (I/O:I/O) .

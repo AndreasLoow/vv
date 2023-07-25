@@ -1,0 +1,16 @@
+load deterministic-continuous-assignment-semantics .
+
+mod SEMANTICS-TEST is
+  extending SEMANTICS .
+ 
+  ops noxvalues a : -> Name [ctor] .
+endm
+
+search [
+module noxvalues ;
+
+ reg a ;
+
+ initial $display(a) ;
+
+endmodule ] =>* (I/O:I/O) .
