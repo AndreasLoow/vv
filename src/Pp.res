@@ -18,6 +18,8 @@ let op2_str = (op) =>
  | Add => "+"
  | Eq => "=="
  | NEq => "!="
+ | CaseEq => "==="
+ | CaseNEq => "!=="
  }
 
 // TODO: Handle parens better

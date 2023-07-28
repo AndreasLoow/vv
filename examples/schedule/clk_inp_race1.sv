@@ -1,4 +1,4 @@
-module seq_and_comb1;
+module clk_inp_race1;
 
 // Inspired by "Relating Event and Trace Semantics
 // of Hardware Description Languages" by Michael

@@ -100,6 +100,8 @@ const verilogGrammar = ohm.grammar(String.raw`
 
     Exp6 = Exp6 "==" Exp7 -- eq
          | Exp6 "!=" Exp7 -- neq
+	 | Exp6 "===" Exp7 -- case_eq
+         | Exp6 "!==" Exp7 -- case_neq
          | Exp7
 
     Exp7 = Exp7 "+" Exp8 -- add
@@ -123,7 +125,7 @@ const verilogGrammar = ohm.grammar(String.raw`
     id = letter (letter | digit | "_")*
     type = "logic" | "reg"
 
-    gate = "and" | "nand" | "or" | "nor" | "xor" | "xnor" | "not"
+    gate = "and" | "nand" | "or" | "nor" | "xor" | "xnor" | "not" | "buf"
 
     comment = multiLineComment | singleLineComment
     multiLineComment = "/*" (~"*/" any)* "*/"
@@ -225,6 +227,8 @@ t.addOperation('translate', {
     Exp6(e1) { return e1.translate(); },
     Exp6_eq(e1, _, e2) { return Ast.mk_ExpOp2_Eq(e1.translate(), e2.translate()); },
     Exp6_neq(e1, _, e2) { return Ast.mk_ExpOp2_NEq(e1.translate(), e2.translate()); },
+    Exp6_case_eq(e1, _, e2) { return Ast.mk_ExpOp2_CaseEq(e1.translate(), e2.translate()); },
+    Exp6_case_neq(e1, _, e2) { return Ast.mk_ExpOp2_CaseNEq(e1.translate(), e2.translate()); },
 
     Exp7(e1) { return e1.translate(); },
     Exp7_add(e1, _, e2) { return Ast.mk_ExpOp2_Add(e1.translate(), e2.translate()); },

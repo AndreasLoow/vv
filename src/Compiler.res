@@ -38,46 +38,6 @@ let compile_cont = (lhs, d, rhs) => {
  { lhs: lhs, delay: d, rhs: rhs }
 }
 
-let compile_not = (d, decl) => {
- if Js.Array.length(decl) == 2 {
-  let lhs = dest_ExpVar(Belt.Array.getExn(decl, 0));
-  let rhs = Belt.Array.getExn(decl, 1);
-  { lhs: lhs, delay: d, rhs: rhs }
- } else {
-  raise(CompileError("Expected two arguments to not gate"))
- }
-}
-
-// TODO: unclear if should be lazy or strict
-let gate_to_op2 = (g) =>
- switch g {
- | "and" => BAnd
- | "or" => BOr
- | "xor" => BXOr
- | _ => Js.Exn.raiseError("impossible gate")
- }
-
-let compile_op2 = (op2, d, decl) => {
- if Js.Array.length(decl) == 3 {
-  let lhs = dest_ExpVar(Belt.Array.getExn(decl, 0));
-  let rhs = ExpOp2(Belt.Array.getExn(decl, 1), op2, Belt.Array.getExn(decl, 2));
-  { lhs: lhs, delay: d, rhs: rhs }
- } else {
-  raise(CompileError("Expected three arguments to gate"))
- }
-}
-
-// No built-in operator for nor
-let compile_nor = (d, decl) => {
- if Js.Array.length(decl) == 3 {
-  let lhs = dest_ExpVar(Belt.Array.getExn(decl, 0));
-  let rhs = ExpNot(ExpOp2(Belt.Array.getExn(decl, 1), BOr, Belt.Array.getExn(decl, 2)));
-  { lhs: lhs, delay: d, rhs: rhs }
- } else {
-  raise(CompileError("Expected three arguments to gate"))
- }
-}
-
 let rec compile_stmt = (s) => {
  switch s {
  | SStmtTimingControl(tc, None) => [StmtTimingControl(tc)]
@@ -119,20 +79,8 @@ let compile_top_level = (m, tl) => {
  | TLCont(lhs, d, rhs) =>
    let cont = compile_cont(lhs, d, rhs)
    {...m, conts: Js.Array2.concat(m.conts, [cont])}
- | TLGates(gate, d, ds) =>
-   if (gate == "not") {
-    let conts = Js.Array.map(compile_not(d), ds)
-    {...m, conts: Js.Array2.concat(m.conts, conts)}
-   } else if (gate == "and" || gate == "or") {
-    let op2 = gate_to_op2(gate)
-    let conts = Js.Array.map(compile_op2(op2, d), ds)
-    {...m, conts: Js.Array2.concat(m.conts, conts)}
-   } else if (gate == "nor") {
-    let conts = Js.Array.map(compile_nor(d), ds)
-    {...m, conts: Js.Array2.concat(m.conts, conts)}
-   } else {
-    raise(CompileError("Unsupported gate: " ++ gate))
-   }
+ | TLGates(_, _, _) =>
+   Js.Exn.raiseError("impossible: gates should have been pre-processed away")
  | TLProc(pt, s) =>
    let pt = str_to_proc_type(pt)
    let ss = compile_stmt(s)

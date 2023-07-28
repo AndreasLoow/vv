@@ -1,6 +1,6 @@
-module seq_and_comb2;
+module clk_inp_race2;
 
-// See seq_and_comb1
+// See clk_inp_race1
 
 logic clk = 0;
 

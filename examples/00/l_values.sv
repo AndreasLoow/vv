@@ -1,4 +1,4 @@
-module e_values;
+module l_values;
 
 // Currently, only bit values are supported,
 // i.e., no arrays/vectors yet.

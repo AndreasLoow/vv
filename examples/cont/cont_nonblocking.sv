@@ -1,4 +1,4 @@
-module nonblocking_cont;
+module cont_nonblocking;
 
 // Simple example of interaction between nonblocking
 // assignments and continuous assignments

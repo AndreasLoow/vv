@@ -157,18 +157,6 @@ let rec check_stmt = (env_prev, new_style, s, stm) =>
     Js.Array.reduce(check_stmt(env_prev, new_style), s, stms)
 }
 
-// Could potentially handle writing to variables as well?
-// Not supported for now
-let check_gate = (s, es) =>
- if Js.Array.length(es) > 0 {
-  let lhs = dest_ExpVar(Belt.Array.getExn(es, 0))
-  check_net(s, lhs)
-
-  Js.Array.forEach(check_exp(s), es)
- } else {
-  ()
- }
-
 let rec reads_star_exp = (e) =>
  switch e {
  | ExpVal(_) => Belt.Set.String.empty
@@ -302,7 +290,9 @@ let elaborate_cont = (s, (lhs, d, rhs)) =>
    | VarNothing =>
       check_exp(s, rhs)
       // Elaborate into an always combinatorial block
-      // ASSUMPTION: A little unclear if this should be blocking or nonblocking
+      // ASSUMPTION: A little unclear if this should be blocking or nonblocking,
+      //             but since continuous assignments are supposed to model combinational logic
+      //             blocking assignments make the most sense here
       let d = elaborate_cont_delay(d)
       let proc = TLProc("always_comb", normalise_always_comb(SStmtAssn(AssnBlocking, lhs, d, rhs)))
       // Variable now claimed
@@ -313,6 +303,65 @@ let elaborate_cont = (s, (lhs, d, rhs)) =>
  | Some(TNet) => check_exp(s, rhs); log(s, TLCont(lhs, d, rhs))
  | None => raise(ElaboratorError("Undefined reference: " ++ lhs))
 }
+
+let elaborate_gate1 = (gate, d, args) =>
+ if Js.Array.length(args) == 2 {
+  let lhs = dest_ExpVar(Belt.Array.getExn(args, 0));
+  let rhs = Belt.Array.getExn(args, 1)
+  let rhs = switch gate {
+            | "not" => ExpNot(rhs)
+            | "buf" => rhs
+            | _ => Js.Exn.raiseError("impossible gate")
+            }
+  (lhs, d, rhs)
+ } else {
+  raise(ElaboratorError("Expected two arguments to gate"))
+ }
+
+// TODO: unclear if should be lazy or strict
+let gate_to_op2 = (g) =>
+ switch g {
+ | "and" => BAnd
+ | "or" => BOr
+ | "xor" => BXOr
+ | _ => Js.Exn.raiseError("impossible gate")
+ }
+
+let elaborate_gate2 = (gate, d, args) =>
+ if Js.Array.length(args) == 3 {
+  let lhs = dest_ExpVar(Belt.Array.getExn(args, 0));
+  let op2 = gate_to_op2(gate)
+  let rhs = ExpOp2(Belt.Array.getExn(args, 1), op2, Belt.Array.getExn(args, 2));
+  (lhs, d, rhs)
+ } else {
+  raise(ElaboratorError("Expected three arguments to gate"))
+ }
+
+// No built-in operator for nor
+let elaborate_gate_nor = (d, args) => {
+ if Js.Array.length(args) == 3 {
+  let lhs = dest_ExpVar(Belt.Array.getExn(args, 0));
+  let rhs = ExpNot(ExpOp2(Belt.Array.getExn(args, 1), BOr, Belt.Array.getExn(args, 2)));
+  (lhs, d, rhs)
+ } else {
+  raise(ElaboratorError("Expected three arguments to gate"))
+ }
+}
+
+let elaborate_gate_to_cont = (gate, d, args) =>
+ if (gate == "not" || gate == "buf") {
+  elaborate_gate1(gate, d, args)
+ } else if (gate == "and" || gate == "or") {
+  elaborate_gate2(gate, d, args)
+ } else if (gate == "nor") {
+  elaborate_gate_nor(d, args)
+ } else {
+  raise(ElaboratorError("Unsupported gate: " ++ gate))
+ }
+
+// Treat gates as syntactic sugar for cont. assignments
+let elaborate_gate = (s, (gate, d, args)) =>
+ elaborate_cont(s, elaborate_gate_to_cont(gate, d, args))
 
 let is_new_style_always = (pt) =>
  pt == ProcAlways(AlwaysComb) ||
@@ -334,7 +383,7 @@ let elaborate_top_level = (s, tl) =>
  | TLVars(ds) => let s = Js.Array.reduce(add_var, s, ds); log(s, tl)
  | TLNets(_, _, ds) => let s = Js.Array.reduce(add_net, s, ds); log(s, tl)
  | TLCont(lhs, d, rhs) => elaborate_cont(s, (lhs, d, rhs))
- | TLGates(_, _, ds) => Js.Array.forEach(check_gate(s), ds); log(s, tl)
+ | TLGates(gate, d, argss) => Js.Array.reduce((s, args) => elaborate_gate(s, (gate, d, args)), s, argss)
  | TLProc(pt, stm) => elaborate_proc(s, (pt, stm))
 }
 
@@ -344,7 +393,3 @@ let elaborate = (ss) => {
  let s = Js.Array.reduce(elaborate_top_level, empty_state, ss)
  s.out
 }
-
-// TLProc
-//   let _ = validate_proc(pt, s)
-//   let s = preprocess_proc(pt, s)

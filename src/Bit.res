@@ -169,3 +169,11 @@ let bit_neq = (v1, v2) =>
 
  | _ => BitX
  }
+
+// REF: 11.4.5 Equality operators
+let bit_case_eq = (v1, v2) => 
+ v1 == v2 ? BitTrue : BitFalse
+
+// REF: 11.4.5 Equality operators
+let bit_case_neq = (v1, v2) =>
+ v1 !== v2 ? BitTrue : BitFalse

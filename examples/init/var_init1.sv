@@ -1,9 +1,9 @@
 module var_init1;
 
 // Initialisation of variables is a little trick in
-// Verilog because of its history. That is, different
-// versions of Verilog handle initialisation of
-// variables differently.
+// Verilog because of the history of the language.
+// That is, different versions of Verilog handle
+// initialisation of variables differently.
 
 // In SystemVerilog, initialisation happens before
 // any events and does itself not cause any events

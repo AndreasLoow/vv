@@ -25,7 +25,7 @@ type value_or_time = VTValue(value) | VTTime(int)
 type var = string
 
 // logical ops are lazy, "bitwise" are not
-type op2 = LAnd | LOr | BAnd | BOr | BXOr | Add | Eq | NEq
+type op2 = LAnd | LOr | BAnd | BOr | BXOr | Add | Eq | NEq | CaseEq | CaseNEq
 
 type rec exp =
   | ExpVal(value)
@@ -46,6 +46,8 @@ let mk_ExpOp2_BXOr = (e1, e2) => ExpOp2(e1, BXOr, e2)
 let mk_ExpOp2_Add = (e1, e2) => ExpOp2(e1, Add, e2)
 let mk_ExpOp2_Eq = (e1, e2) => ExpOp2(e1, Eq, e2)
 let mk_ExpOp2_NEq = (e1, e2) => ExpOp2(e1, NEq, e2)
+let mk_ExpOp2_CaseEq = (e1, e2) => ExpOp2(e1, CaseEq, e2)
+let mk_ExpOp2_CaseNEq = (e1, e2) => ExpOp2(e1, CaseNEq, e2)
 let mk_ExpCond = (e1, e2, e3) => ExpCond(e1, e2, e3)
 
 type exp_or_time = ETExp(exp) | ETTime

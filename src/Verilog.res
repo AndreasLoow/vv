@@ -127,6 +127,8 @@ let val_xor = val_bit_lift2(bit_xor)
 let val_add = val_bit_lift2(bit_add)
 let val_eq = val_bit_lift2(bit_eq)
 let val_neq = val_bit_lift2(bit_neq)
+let val_case_eq = val_bit_lift2(bit_case_eq)
+let val_case_neq = val_bit_lift2(bit_case_neq)
 let val_cond = val_bit_lift2(bit_cond)
 let val_is_true = val_bit_bind(bit_is_true)
 let val_is_false = val_bit_bind(bit_is_false)
@@ -191,6 +193,8 @@ let rec run_exp = (env, e) =>
    | Add => val_add(v1, v2)
    | Eq => val_eq(v1, v2)
    | NEq => val_neq(v1, v2)
+   | CaseEq => val_case_eq(v1, v2)
+   | CaseNEq => val_case_neq(v1, v2)
    }
  | ExpCond(e1, e2, e3) =>
    let v1 = run_exp(env, e1)
