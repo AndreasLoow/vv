@@ -1,0 +1,33 @@
+load deterministic-continuous-assignment-semantics .
+
+mod SEMANTICS-TEST is
+  extending SEMANTICS .
+ 
+  ops interleavings a b c : -> Name [ctor] .
+endm
+
+search [
+module interleavings ;
+
+ reg [1 : 0] a ;
+
+ reg [1 : 0] b ;
+
+ wire [1 : 0] c ;
+
+ assign c = b ;
+
+ always @* begin
+  a = c ;
+  b = i(2) ;
+  *** If we add uncomment this:
+  *** a = a ;
+  *** then we get 122 as a possible
+  *** outcome as well
+ end
+
+ initial b = i(1) ;
+
+ initial $monitor(a, b, c) ;
+
+endmodule ] =>* (I/O:I/O) .

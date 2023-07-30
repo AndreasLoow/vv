@@ -1,0 +1,7 @@
+Solution 1 (state 18)
+states: 19  rewrites: 653 in 1ms cpu (1ms real) (483345 rewrites/second)
+I/O:I/O --> "222\n"
+"Final simulation time: 0"
+
+No more solutions.
+states: 19  rewrites: 653 in 1ms cpu (1ms real) (474563 rewrites/second)

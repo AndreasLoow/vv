@@ -28,10 +28,10 @@ end
 // continuous assignments are never interleaved.
 //
 // The standard is unclear here. The standard
-// allows for any process interleaving, including
-// between procedural processes, which leads to the
-// problems described in the VV paper. However,
-// I am not aware of any problems interleaving
-// procedural and continuous assignments.
+// allows for any process interleaving, but this
+// leads to problems, as discussed in the paper.
+// On the other hand, the above shows that some simulators
+// still allow some interleavings, here specifically between
+// procedural processes and continuous assignments.
 
 endmodule

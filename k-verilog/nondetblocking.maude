@@ -12,8 +12,8 @@ module nondetblocking ;
  reg [1 : 0] a ;
 
  initial begin
-  a <= i(1) ;
-  a <= i(2) ;
+  a = i(1) ;
+  a = i(2) ;
  end
 
  always @* $display(a) ;
