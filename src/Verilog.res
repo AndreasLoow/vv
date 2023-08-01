@@ -38,10 +38,10 @@ let event_key = (e) =>
  | Events(id, _) => Belt.Int.toString(id)
 }
 
-type event_queue =
+type time_slot =
  { active: array<event>, inactive: array<event>, nba: array<event> }
 
-let empty_event_queue =
+let empty_time_slot =
  { active: [], inactive: [], nba: [] }
 
 type region = RegionActive | RegionInactive | RegionNBA
@@ -81,7 +81,7 @@ type state =
    env: Belt.Map.String.t<value>,
    cont_env: array<value>, // latest computed value for conts
    proc_env: array<proc_state>,
-   queue: array<(int, event_queue)>,
+   queue: array<(int, time_slot)>,
    monitor: option<(string, array<exp_or_time>, option<array<value_or_time>>)>, // this represents the "postponed" region
    output: string,
    time: int,
@@ -242,7 +242,7 @@ let calculate_event_delay = (nets, netname, delay) => {
 // maxtime just a micro-optimization telling us how far into the future we need to look;
 // made everything very ugly since re-script does not have break/return...
 // microoptimization should probably just be removed...
-let find_queued_update = (queue : array<(int, event_queue)>, maxtime, driver_i) => {
+let find_queued_update = (queue : array<(int, time_slot)>, maxtime, driver_i) => {
  let break = ref(false)
  let i = ref(0)
 
@@ -305,7 +305,7 @@ let add_event = (queue, t, time, e) => {
  let i = Js.Array.findIndex(((time', _)) => { time' >= time }, queue)
 
  if i == -1 {
-  let q = region_set(empty_event_queue, t, [e])
+  let q = region_set(empty_time_slot, t, [e])
   Js.Array2.concat(queue, [(time, q)])
  } else if fst(Belt.Array.getExn(queue, i)) == time {
   let q = snd(Belt.Array.getExn(queue, i))
@@ -316,7 +316,7 @@ let add_event = (queue, t, time, e) => {
   queue
  } else {
   let pre = Js.Array.slice(~start=0, ~end_=i, queue)
-  let q = region_set(empty_event_queue, t, [e])
+  let q = region_set(empty_time_slot, t, [e])
   let post = Js.Array.slice(~start=i, ~end_=Js.Array.length(queue), queue)
   Js.Array2.concat(Js.Array2.concat(pre, [(time, q)]), post)
  }
@@ -744,7 +744,7 @@ let build_state = (m : vmodule, old_process_nba_first) => {
    //             they have not reached the first blocking/control
    //             statement yet.
    proc_env: Belt.Array.map(m.procs, build_proc_state),
-   queue: [(0, {...empty_event_queue, active: proc_es})],
+   queue: [(0, {...empty_time_slot, active: proc_es})],
    monitor: None,
    output: "",
    time: 0,
