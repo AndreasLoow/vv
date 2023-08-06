@@ -1,4 +1,4 @@
-module nonblocking_delay;
+module delay_nonblocking1;
 
 // Simple example of delayed nonblocking assignment
 

@@ -1,4 +1,4 @@
-module blocking_delay;
+module delay_blocking1;
 
 // Simple example of delayed blocking assignment
 
