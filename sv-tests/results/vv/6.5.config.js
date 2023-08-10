@@ -1,0 +1,1 @@
+config_loader_data['vv/6.5'] = [["","variable_assignment",0,"logs/vv/chapter-6/6.5--variable_assignment.sv.log.html","tests/chapter-6/6.5--variable_assignment.sv.html"]]

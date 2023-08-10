@@ -1,0 +1,1 @@
+config_loader_data['vv/8.5'] = [["","parameters",0,"logs/vv/chapter-8/8.5--parameters.sv.log.html","tests/chapter-8/8.5--parameters.sv.html"],["","properties",0,"logs/vv/chapter-8/8.5--properties.sv.log.html","tests/chapter-8/8.5--properties.sv.html"],["","properties_enum",0,"logs/vv/chapter-8/8.5--properties_enum.sv.log.html","tests/chapter-8/8.5--properties_enum.sv.html"]]

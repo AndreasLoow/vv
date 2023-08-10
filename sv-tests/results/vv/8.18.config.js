@@ -1,0 +1,1 @@
+config_loader_data['vv/8.18'] = [["","var_local",0,"logs/vv/chapter-8/8.18--var_local.sv.log.html","tests/chapter-8/8.18--var_local.sv.html"],["","var_protected",0,"logs/vv/chapter-8/8.18--var_protected.sv.log.html","tests/chapter-8/8.18--var_protected.sv.html"]]

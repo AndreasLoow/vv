@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="stylesheet" type="text/css" href="../../code.css">
+  </head>
+  <body>  
+    <header id="header_code"><h2>tests/chapter-16/16.7--sequence-or-uvm.sv</h2></header>  
+    <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span class="normal"><a href="#l-1">  1</a></span>
+<span class="normal"><a href="#l-2">  2</a></span>
+<span class="normal"><a href="#l-3">  3</a></span>
+<span class="normal"><a href="#l-4">  4</a></span>
+<span class="normal"><a href="#l-5">  5</a></span>
+<span class="normal"><a href="#l-6">  6</a></span>
+<span class="normal"><a href="#l-7">  7</a></span>
+<span class="normal"><a href="#l-8">  8</a></span>
+<span class="normal"><a href="#l-9">  9</a></span>
+<span class="normal"><a href="#l-10"> 10</a></span>
+<span class="normal"><a href="#l-11"> 11</a></span>
+<span class="normal"><a href="#l-12"> 12</a></span>
+<span class="normal"><a href="#l-13"> 13</a></span>
+<span class="normal"><a href="#l-14"> 14</a></span>
+<span class="normal"><a href="#l-15"> 15</a></span>
+<span class="normal"><a href="#l-16"> 16</a></span>
+<span class="normal"><a href="#l-17"> 17</a></span>
+<span class="normal"><a href="#l-18"> 18</a></span>
+<span class="normal"><a href="#l-19"> 19</a></span>
+<span class="normal"><a href="#l-20"> 20</a></span>
+<span class="normal"><a href="#l-21"> 21</a></span>
+<span class="normal"><a href="#l-22"> 22</a></span>
+<span class="normal"><a href="#l-23"> 23</a></span>
+<span class="normal"><a href="#l-24"> 24</a></span>
+<span class="normal"><a href="#l-25"> 25</a></span>
+<span class="normal"><a href="#l-26"> 26</a></span>
+<span class="normal"><a href="#l-27"> 27</a></span>
+<span class="normal"><a href="#l-28"> 28</a></span>
+<span class="normal"><a href="#l-29"> 29</a></span>
+<span class="normal"><a href="#l-30"> 30</a></span>
+<span class="normal"><a href="#l-31"> 31</a></span>
+<span class="normal"><a href="#l-32"> 32</a></span>
+<span class="normal"><a href="#l-33"> 33</a></span>
+<span class="normal"><a href="#l-34"> 34</a></span>
+<span class="normal"><a href="#l-35"> 35</a></span>
+<span class="normal"><a href="#l-36"> 36</a></span>
+<span class="normal"><a href="#l-37"> 37</a></span>
+<span class="normal"><a href="#l-38"> 38</a></span>
+<span class="normal"><a href="#l-39"> 39</a></span>
+<span class="normal"><a href="#l-40"> 40</a></span>
+<span class="normal"><a href="#l-41"> 41</a></span>
+<span class="normal"><a href="#l-42"> 42</a></span>
+<span class="normal"><a href="#l-43"> 43</a></span>
+<span class="normal"><a href="#l-44"> 44</a></span>
+<span class="normal"><a href="#l-45"> 45</a></span>
+<span class="normal"><a href="#l-46"> 46</a></span>
+<span class="normal"><a href="#l-47"> 47</a></span>
+<span class="normal"><a href="#l-48"> 48</a></span>
+<span class="normal"><a href="#l-49"> 49</a></span>
+<span class="normal"><a href="#l-50"> 50</a></span>
+<span class="normal"><a href="#l-51"> 51</a></span>
+<span class="normal"><a href="#l-52"> 52</a></span>
+<span class="normal"><a href="#l-53"> 53</a></span>
+<span class="normal"><a href="#l-54"> 54</a></span>
+<span class="normal"><a href="#l-55"> 55</a></span>
+<span class="normal"><a href="#l-56"> 56</a></span>
+<span class="normal"><a href="#l-57"> 57</a></span>
+<span class="normal"><a href="#l-58"> 58</a></span>
+<span class="normal"><a href="#l-59"> 59</a></span>
+<span class="normal"><a href="#l-60"> 60</a></span>
+<span class="normal"><a href="#l-61"> 61</a></span>
+<span class="normal"><a href="#l-62"> 62</a></span>
+<span class="normal"><a href="#l-63"> 63</a></span>
+<span class="normal"><a href="#l-64"> 64</a></span>
+<span class="normal"><a href="#l-65"> 65</a></span>
+<span class="normal"><a href="#l-66"> 66</a></span>
+<span class="normal"><a href="#l-67"> 67</a></span>
+<span class="normal"><a href="#l-68"> 68</a></span>
+<span class="normal"><a href="#l-69"> 69</a></span>
+<span class="normal"><a href="#l-70"> 70</a></span>
+<span class="normal"><a href="#l-71"> 71</a></span>
+<span class="normal"><a href="#l-72"> 72</a></span>
+<span class="normal"><a href="#l-73"> 73</a></span>
+<span class="normal"><a href="#l-74"> 74</a></span>
+<span class="normal"><a href="#l-75"> 75</a></span>
+<span class="normal"><a href="#l-76"> 76</a></span>
+<span class="normal"><a href="#l-77"> 77</a></span>
+<span class="normal"><a href="#l-78"> 78</a></span>
+<span class="normal"><a href="#l-79"> 79</a></span>
+<span class="normal"><a href="#l-80"> 80</a></span>
+<span class="normal"><a href="#l-81"> 81</a></span>
+<span class="normal"><a href="#l-82"> 82</a></span>
+<span class="normal"><a href="#l-83"> 83</a></span>
+<span class="normal"><a href="#l-84"> 84</a></span>
+<span class="normal"><a href="#l-85"> 85</a></span>
+<span class="normal"><a href="#l-86"> 86</a></span>
+<span class="normal"><a href="#l-87"> 87</a></span>
+<span class="normal"><a href="#l-88"> 88</a></span>
+<span class="normal"><a href="#l-89"> 89</a></span>
+<span class="normal"><a href="#l-90"> 90</a></span>
+<span class="normal"><a href="#l-91"> 91</a></span>
+<span class="normal"><a href="#l-92"> 92</a></span>
+<span class="normal"><a href="#l-93"> 93</a></span>
+<span class="normal"><a href="#l-94"> 94</a></span>
+<span class="normal"><a href="#l-95"> 95</a></span>
+<span class="normal"><a href="#l-96"> 96</a></span>
+<span class="normal"><a href="#l-97"> 97</a></span>
+<span class="normal"><a href="#l-98"> 98</a></span>
+<span class="normal"><a href="#l-99"> 99</a></span>
+<span class="normal"><a href="#l-100">100</a></span>
+<span class="normal"><a href="#l-101">101</a></span>
+<span class="normal"><a href="#l-102">102</a></span>
+<span class="normal"><a href="#l-103">103</a></span>
+<span class="normal"><a href="#l-104">104</a></span>
+<span class="normal"><a href="#l-105">105</a></span>
+<span class="normal"><a href="#l-106">106</a></span>
+<span class="normal"><a href="#l-107">107</a></span>
+<span class="normal"><a href="#l-108">108</a></span>
+<span class="normal"><a href="#l-109">109</a></span>
+<span class="normal"><a href="#l-110">110</a></span>
+<span class="normal"><a href="#l-111">111</a></span>
+<span class="normal"><a href="#l-112">112</a></span>
+<span class="normal"><a href="#l-113">113</a></span>
+<span class="normal"><a href="#l-114">114</a></span>
+<span class="normal"><a href="#l-115">115</a></span>
+<span class="normal"><a href="#l-116">116</a></span>
+<span class="normal"><a href="#l-117">117</a></span>
+<span class="normal"><a href="#l-118">118</a></span>
+<span class="normal"><a href="#l-119">119</a></span>
+<span class="normal"><a href="#l-120">120</a></span>
+<span class="normal"><a href="#l-121">121</a></span>
+<span class="normal"><a href="#l-122">122</a></span>
+<span class="normal"><a href="#l-123">123</a></span>
+<span class="normal"><a href="#l-124">124</a></span>
+<span class="normal"><a href="#l-125">125</a></span>
+<span class="normal"><a href="#l-126">126</a></span>
+<span class="normal"><a href="#l-127">127</a></span>
+<span class="normal"><a href="#l-128">128</a></span>
+<span class="normal"><a href="#l-129">129</a></span></pre></div></td><td class="code"><div><pre><span></span><a id="l-1" name="l-1"></a><span class="c1">// Copyright (C) 2019-2021  The SymbiFlow Authors.</span>
+<a id="l-2" name="l-2"></a><span class="c1">//</span>
+<a id="l-3" name="l-3"></a><span class="c1">// Use of this source code is governed by a ISC-style</span>
+<a id="l-4" name="l-4"></a><span class="c1">// license that can be found in the LICENSE file or at</span>
+<a id="l-5" name="l-5"></a><span class="c1">// https://opensource.org/licenses/ISC</span>
+<a id="l-6" name="l-6"></a><span class="c1">//</span>
+<a id="l-7" name="l-7"></a><span class="c1">// SPDX-License-Identifier: ISC</span>
+<a id="l-8" name="l-8"></a>
+<a id="l-9" name="l-9"></a>
+<a id="l-10" name="l-10"></a><span class="cm">/*</span>
+<a id="l-11" name="l-11"></a><span class="cm">:name: sequence_or_op_test_uvm</span>
+<a id="l-12" name="l-12"></a><span class="cm">:description: sequence with &quot;or&quot; operator in UVM</span>
+<a id="l-13" name="l-13"></a><span class="cm">:type: simulation elaboration parsing</span>
+<a id="l-14" name="l-14"></a><span class="cm">:tags: uvm uvm-assertions</span>
+<a id="l-15" name="l-15"></a><span class="cm">:timeout: 60</span>
+<a id="l-16" name="l-16"></a><span class="cm">*/</span>
+<a id="l-17" name="l-17"></a>
+<a id="l-18" name="l-18"></a><span class="kn">import</span><span class="w"> </span><span class="nn">uvm_pkg::*</span><span class="p">;</span>
+<a id="l-19" name="l-19"></a><span class="no">`include</span><span class="w"> </span><span class="s">&quot;uvm_macros.svh&quot;</span>
+<a id="l-20" name="l-20"></a>
+<a id="l-21" name="l-21"></a><span class="k">module</span><span class="w"> </span><span class="n">mod</span><span class="w"> </span><span class="p">(</span>
+<a id="l-22" name="l-22"></a><span class="w">    </span><span class="k">input</span><span class="w">            </span><span class="n">clk</span><span class="p">,</span>
+<a id="l-23" name="l-23"></a><span class="w">    </span><span class="k">input</span><span class="w">            </span><span class="n">req</span><span class="p">,</span>
+<a id="l-24" name="l-24"></a><span class="w">    </span><span class="k">output</span><span class="w"> </span><span class="kt">reg</span><span class="w">       </span><span class="n">gnt0</span><span class="p">,</span>
+<a id="l-25" name="l-25"></a><span class="w">    </span><span class="k">output</span><span class="w"> </span><span class="kt">reg</span><span class="w">       </span><span class="n">gnt1</span><span class="p">,</span>
+<a id="l-26" name="l-26"></a><span class="w">    </span><span class="k">output</span><span class="w"> </span><span class="kt">reg</span><span class="w">       </span><span class="n">gnt2</span>
+<a id="l-27" name="l-27"></a><span class="p">);</span>
+<a id="l-28" name="l-28"></a>
+<a id="l-29" name="l-29"></a><span class="w">    </span><span class="kt">int</span><span class="w"> </span><span class="n">cnt</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">0</span><span class="p">;</span>
+<a id="l-30" name="l-30"></a><span class="w">    </span><span class="kt">bit</span><span class="w"> </span><span class="n">req_old</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">0</span><span class="p">;</span>
+<a id="l-31" name="l-31"></a>
+<a id="l-32" name="l-32"></a><span class="w">    </span><span class="k">initial</span><span class="w"> </span><span class="k">begin</span>
+<a id="l-33" name="l-33"></a><span class="w">        </span><span class="n">gnt0</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">0</span><span class="p">;</span>
+<a id="l-34" name="l-34"></a><span class="w">        </span><span class="n">gnt1</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">0</span><span class="p">;</span>
+<a id="l-35" name="l-35"></a><span class="w">        </span><span class="n">gnt2</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">0</span><span class="p">;</span>
+<a id="l-36" name="l-36"></a><span class="w">    </span><span class="k">end</span>
+<a id="l-37" name="l-37"></a>
+<a id="l-38" name="l-38"></a><span class="w">    </span><span class="k">always</span><span class="w"> </span><span class="p">@(</span><span class="k">posedge</span><span class="w"> </span><span class="n">clk</span><span class="p">)</span><span class="w"> </span><span class="k">begin</span>
+<a id="l-39" name="l-39"></a><span class="w">        </span><span class="n">req_old</span><span class="w"> </span><span class="o">&lt;=</span><span class="w"> </span><span class="n">req</span><span class="p">;</span>
+<a id="l-40" name="l-40"></a><span class="w">        </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">req</span><span class="w"> </span><span class="o">&amp;</span><span class="w"> </span><span class="o">~</span><span class="n">req_old</span><span class="p">)</span><span class="w"> </span><span class="k">begin</span>
+<a id="l-41" name="l-41"></a><span class="w">            </span><span class="n">cnt</span><span class="w"> </span><span class="o">&lt;=</span><span class="w"> </span><span class="mi">0</span><span class="p">;</span>
+<a id="l-42" name="l-42"></a><span class="w">            </span><span class="n">gnt0</span><span class="w"> </span><span class="o">&lt;=</span><span class="w"> </span><span class="mi">0</span><span class="p">;</span>
+<a id="l-43" name="l-43"></a><span class="w">            </span><span class="n">gnt1</span><span class="w"> </span><span class="o">&lt;=</span><span class="w"> </span><span class="mi">0</span><span class="p">;</span>
+<a id="l-44" name="l-44"></a><span class="w">            </span><span class="n">gnt2</span><span class="w"> </span><span class="o">&lt;=</span><span class="w"> </span><span class="mi">0</span><span class="p">;</span>
+<a id="l-45" name="l-45"></a><span class="w">        </span><span class="k">end</span><span class="w"> </span><span class="k">else</span><span class="w"> </span><span class="k">begin</span>
+<a id="l-46" name="l-46"></a><span class="w">            </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">cnt</span><span class="w"> </span><span class="o">&lt;</span><span class="w"> </span><span class="mi">16</span><span class="p">)</span><span class="w"> </span><span class="k">begin</span>
+<a id="l-47" name="l-47"></a><span class="w">                </span><span class="n">cnt</span><span class="w"> </span><span class="o">&lt;=</span><span class="w"> </span><span class="n">cnt</span><span class="o">+</span><span class="mi">1</span><span class="p">;</span>
+<a id="l-48" name="l-48"></a><span class="w">            </span><span class="k">end</span>
+<a id="l-49" name="l-49"></a><span class="w">            </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">cnt</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="mi">3</span><span class="p">)</span>
+<a id="l-50" name="l-50"></a><span class="w">                </span><span class="n">gnt0</span><span class="w"> </span><span class="o">&lt;=</span><span class="w"> </span><span class="mi">1</span><span class="p">;</span>
+<a id="l-51" name="l-51"></a>
+<a id="l-52" name="l-52"></a><span class="w">            </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">cnt</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="mi">6</span><span class="p">)</span>
+<a id="l-53" name="l-53"></a><span class="w">                </span><span class="n">gnt1</span><span class="w"> </span><span class="o">&lt;=</span><span class="w"> </span><span class="mi">1</span><span class="p">;</span>
+<a id="l-54" name="l-54"></a>
+<a id="l-55" name="l-55"></a><span class="w">            </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">cnt</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="mi">7</span><span class="p">)</span>
+<a id="l-56" name="l-56"></a><span class="w">                </span><span class="n">gnt2</span><span class="w"> </span><span class="o">&lt;=</span><span class="w"> </span><span class="mi">1</span><span class="p">;</span>
+<a id="l-57" name="l-57"></a><span class="w">        </span><span class="k">end</span>
+<a id="l-58" name="l-58"></a><span class="w">    </span><span class="k">end</span>
+<a id="l-59" name="l-59"></a>
+<a id="l-60" name="l-60"></a><span class="k">endmodule</span><span class="o">:</span><span class="w"> </span><span class="n">mod</span>
+<a id="l-61" name="l-61"></a>
+<a id="l-62" name="l-62"></a><span class="k">interface</span><span class="w"> </span><span class="n">mod_if</span><span class="p">(</span>
+<a id="l-63" name="l-63"></a><span class="w">    </span><span class="k">output</span><span class="w"> </span><span class="kt">bit</span><span class="w"> </span><span class="n">clk</span><span class="p">,</span>
+<a id="l-64" name="l-64"></a><span class="w">    </span><span class="k">output</span><span class="w"> </span><span class="kt">bit</span><span class="w"> </span><span class="n">req</span><span class="p">,</span>
+<a id="l-65" name="l-65"></a><span class="w">    </span><span class="k">input</span><span class="w"> </span><span class="n">gnt0</span><span class="p">,</span>
+<a id="l-66" name="l-66"></a><span class="w">    </span><span class="k">input</span><span class="w"> </span><span class="n">gnt1</span><span class="p">,</span>
+<a id="l-67" name="l-67"></a><span class="w">    </span><span class="k">input</span><span class="w"> </span><span class="n">gnt2</span>
+<a id="l-68" name="l-68"></a><span class="p">);</span>
+<a id="l-69" name="l-69"></a>
+<a id="l-70" name="l-70"></a><span class="k">endinterface</span><span class="o">:</span><span class="w"> </span><span class="n">mod_if</span>
+<a id="l-71" name="l-71"></a>
+<a id="l-72" name="l-72"></a><span class="kt">string</span><span class="w"> </span><span class="n">label</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;SEQUENCE_AND_UVM&quot;</span><span class="p">;</span>
+<a id="l-73" name="l-73"></a>
+<a id="l-74" name="l-74"></a><span class="kd">class</span><span class="w"> </span><span class="nc">env</span><span class="w"> </span><span class="kd">extends</span><span class="w"> </span><span class="nc">uvm_env</span><span class="p">;</span>
+<a id="l-75" name="l-75"></a><span class="w">    </span><span class="k">virtual</span><span class="w"> </span><span class="n">mod_if</span><span class="w"> </span><span class="n">m_if</span><span class="p">;</span>
+<a id="l-76" name="l-76"></a>
+<a id="l-77" name="l-77"></a><span class="w">    </span><span class="k">function</span><span class="w"> </span><span class="k">new</span><span class="p">(</span><span class="kt">string</span><span class="w"> </span><span class="n">name</span><span class="p">,</span><span class="w"> </span><span class="n">uvm_component</span><span class="w"> </span><span class="n">parent</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">null</span><span class="p">);</span>
+<a id="l-78" name="l-78"></a><span class="w">        </span><span class="k">super</span><span class="p">.</span><span class="k">new</span><span class="p">(</span><span class="n">name</span><span class="p">,</span><span class="w"> </span><span class="n">parent</span><span class="p">);</span>
+<a id="l-79" name="l-79"></a><span class="w">    </span><span class="k">endfunction</span>
+<a id="l-80" name="l-80"></a>
+<a id="l-81" name="l-81"></a><span class="w">    </span><span class="k">function</span><span class="w"> </span><span class="kt">void</span><span class="w"> </span><span class="n">connect_phase</span><span class="p">(</span><span class="n">uvm_phase</span><span class="w"> </span><span class="n">phase</span><span class="p">);</span>
+<a id="l-82" name="l-82"></a><span class="w">        </span><span class="no">`uvm_info</span><span class="p">(</span><span class="n">label</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;Started connect phase&quot;</span><span class="p">,</span><span class="w"> </span><span class="n">UVM_LOW</span><span class="p">);</span>
+<a id="l-83" name="l-83"></a><span class="w">        </span><span class="k">assert</span><span class="p">(</span><span class="n">uvm_resource_db</span><span class="p">#(</span><span class="k">virtual</span><span class="w"> </span><span class="n">mod_if</span><span class="p">)</span><span class="o">::</span><span class="n">read_by_name</span><span class="p">(</span>
+<a id="l-84" name="l-84"></a><span class="w">            </span><span class="n">get_full_name</span><span class="p">(),</span><span class="w"> </span><span class="s">&quot;mod_if&quot;</span><span class="p">,</span><span class="w"> </span><span class="n">m_if</span><span class="p">));</span>
+<a id="l-85" name="l-85"></a><span class="w">        </span><span class="no">`uvm_info</span><span class="p">(</span><span class="n">label</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;Finished connect phase&quot;</span><span class="p">,</span><span class="w"> </span><span class="n">UVM_LOW</span><span class="p">);</span>
+<a id="l-86" name="l-86"></a><span class="w">    </span><span class="k">endfunction</span><span class="o">:</span><span class="w"> </span><span class="n">connect_phase</span>
+<a id="l-87" name="l-87"></a>
+<a id="l-88" name="l-88"></a><span class="w">    </span><span class="k">task</span><span class="w"> </span><span class="n">run_phase</span><span class="p">(</span><span class="n">uvm_phase</span><span class="w"> </span><span class="n">phase</span><span class="p">);</span>
+<a id="l-89" name="l-89"></a><span class="w">        </span><span class="n">phase</span><span class="p">.</span><span class="n">raise_objection</span><span class="p">(</span><span class="k">this</span><span class="p">);</span>
+<a id="l-90" name="l-90"></a><span class="w">        </span><span class="no">`uvm_info</span><span class="p">(</span><span class="n">label</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;Started run phase&quot;</span><span class="p">,</span><span class="w"> </span><span class="n">UVM_LOW</span><span class="p">);</span>
+<a id="l-91" name="l-91"></a><span class="w">        </span><span class="k">begin</span>
+<a id="l-92" name="l-92"></a><span class="w">            </span><span class="k">repeat</span><span class="p">(</span><span class="mi">10</span><span class="p">)</span><span class="w"> </span><span class="p">@(</span><span class="k">posedge</span><span class="w"> </span><span class="n">m_if</span><span class="p">.</span><span class="n">clk</span><span class="p">);</span>
+<a id="l-93" name="l-93"></a><span class="w">        </span><span class="k">end</span>
+<a id="l-94" name="l-94"></a><span class="w">        </span><span class="no">`uvm_info</span><span class="p">(</span><span class="n">label</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;Finished run phase&quot;</span><span class="p">,</span><span class="w"> </span><span class="n">UVM_LOW</span><span class="p">);</span>
+<a id="l-95" name="l-95"></a><span class="w">        </span><span class="n">phase</span><span class="p">.</span><span class="n">drop_objection</span><span class="p">(</span><span class="k">this</span><span class="p">);</span>
+<a id="l-96" name="l-96"></a><span class="w">    </span><span class="k">endtask</span><span class="o">:</span><span class="w"> </span><span class="n">run_phase</span>
+<a id="l-97" name="l-97"></a><span class="kd">endclass</span>
+<a id="l-98" name="l-98"></a>
+<a id="l-99" name="l-99"></a><span class="k">module</span><span class="w"> </span><span class="n">top</span><span class="p">();</span>
+<a id="l-100" name="l-100"></a><span class="w">    </span><span class="n">env</span><span class="w"> </span><span class="n">environment</span><span class="p">;</span>
+<a id="l-101" name="l-101"></a>
+<a id="l-102" name="l-102"></a><span class="w">    </span><span class="n">mod_if</span><span class="w"> </span><span class="n">dif</span><span class="p">();</span>
+<a id="l-103" name="l-103"></a>
+<a id="l-104" name="l-104"></a><span class="w">    </span><span class="n">mod</span><span class="w"> </span><span class="n">dut</span><span class="p">(.</span><span class="n">clk</span><span class="p">(</span><span class="n">dif</span><span class="p">.</span><span class="n">clk</span><span class="p">),</span><span class="w"> </span><span class="p">.</span><span class="n">req</span><span class="p">(</span><span class="n">dif</span><span class="p">.</span><span class="n">req</span><span class="p">),</span><span class="w"> </span><span class="p">.</span><span class="n">gnt0</span><span class="p">(</span><span class="n">dif</span><span class="p">.</span><span class="n">gnt0</span><span class="p">),</span><span class="w"> </span><span class="p">.</span><span class="n">gnt1</span><span class="p">(</span><span class="n">dif</span><span class="p">.</span><span class="n">gnt1</span><span class="p">),</span><span class="w"> </span><span class="p">.</span><span class="n">gnt2</span><span class="p">(</span><span class="n">dif</span><span class="p">.</span><span class="n">gnt2</span><span class="p">));</span>
+<a id="l-105" name="l-105"></a>
+<a id="l-106" name="l-106"></a><span class="w">    </span><span class="k">initial</span><span class="w"> </span><span class="k">begin</span>
+<a id="l-107" name="l-107"></a><span class="w">        </span><span class="n">environment</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">new</span><span class="p">(</span><span class="s">&quot;env&quot;</span><span class="p">);</span>
+<a id="l-108" name="l-108"></a><span class="w">        </span><span class="n">uvm_resource_db</span><span class="p">#(</span><span class="k">virtual</span><span class="w"> </span><span class="n">mod_if</span><span class="p">)</span><span class="o">::</span><span class="n">set</span><span class="p">(</span><span class="s">&quot;env&quot;</span><span class="p">,</span>
+<a id="l-109" name="l-109"></a><span class="w">            </span><span class="s">&quot;mod_if&quot;</span><span class="p">,</span><span class="w"> </span><span class="n">dif</span><span class="p">);</span>
+<a id="l-110" name="l-110"></a><span class="w">        </span><span class="n">dif</span><span class="p">.</span><span class="n">clk</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">0</span><span class="p">;</span>
+<a id="l-111" name="l-111"></a><span class="w">        </span><span class="n">run_test</span><span class="p">();</span>
+<a id="l-112" name="l-112"></a><span class="w">    </span><span class="k">end</span>
+<a id="l-113" name="l-113"></a>
+<a id="l-114" name="l-114"></a><span class="w">    </span><span class="k">initial</span><span class="w"> </span><span class="k">begin</span>
+<a id="l-115" name="l-115"></a><span class="w">        </span><span class="n">dif</span><span class="p">.</span><span class="n">req</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">1</span><span class="p">;</span>
+<a id="l-116" name="l-116"></a><span class="w">    </span><span class="k">end</span>
+<a id="l-117" name="l-117"></a>
+<a id="l-118" name="l-118"></a><span class="w">    </span><span class="k">sequence</span><span class="w"> </span><span class="n">seq</span><span class="p">;</span>
+<a id="l-119" name="l-119"></a><span class="w">        </span><span class="p">@(</span><span class="k">posedge</span><span class="w"> </span><span class="n">dif</span><span class="p">.</span><span class="n">clk</span><span class="p">)</span><span class="w"> </span><span class="p">(</span><span class="n">dif</span><span class="p">.</span><span class="n">req</span><span class="w"> </span><span class="p">##</span><span class="mi">5</span><span class="w"> </span><span class="n">dif</span><span class="p">.</span><span class="n">gnt0</span><span class="p">)</span><span class="w"> </span><span class="k">or</span><span class="w"> </span><span class="p">(</span><span class="n">dif</span><span class="p">.</span><span class="n">req</span><span class="w"> </span><span class="p">##</span><span class="mi">3</span><span class="w"> </span><span class="n">dif</span><span class="p">.</span><span class="n">gnt1</span><span class="p">);</span>
+<a id="l-120" name="l-120"></a><span class="w">    </span><span class="k">endsequence</span>
+<a id="l-121" name="l-121"></a>
+<a id="l-122" name="l-122"></a><span class="w">    </span><span class="k">assert</span><span class="w"> </span><span class="k">property</span><span class="w"> </span><span class="p">(</span><span class="n">seq</span><span class="p">)</span><span class="w"> </span><span class="k">else</span><span class="w"> </span><span class="no">`uvm_error</span><span class="p">(</span><span class="n">label</span><span class="p">,</span><span class="w"> </span><span class="p">$</span><span class="n">sformatf</span><span class="p">(</span><span class="s">&quot;seq failed :assert: (False)&quot;</span><span class="p">));</span>
+<a id="l-123" name="l-123"></a>
+<a id="l-124" name="l-124"></a><span class="w">    </span><span class="k">initial</span><span class="w"> </span><span class="k">begin</span>
+<a id="l-125" name="l-125"></a><span class="w">        </span><span class="k">forever</span><span class="w"> </span><span class="k">begin</span>
+<a id="l-126" name="l-126"></a><span class="w">            </span><span class="p">#(</span><span class="mi">50</span><span class="p">)</span><span class="w"> </span><span class="n">dif</span><span class="p">.</span><span class="n">clk</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="o">~</span><span class="n">dif</span><span class="p">.</span><span class="n">clk</span><span class="p">;</span>
+<a id="l-127" name="l-127"></a><span class="w">        </span><span class="k">end</span>
+<a id="l-128" name="l-128"></a><span class="w">    </span><span class="k">end</span>
+<a id="l-129" name="l-129"></a><span class="k">endmodule</span>
+</pre></div></td></tr></table></div>
+
+  </body>
+</html>

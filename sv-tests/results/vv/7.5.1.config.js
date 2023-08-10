@@ -1,0 +1,1 @@
+config_loader_data['vv/7.5.1'] = [["","dynamic-arrays-op-new",0,"logs/vv/chapter-7/arrays/dynamic/op-new.sv.log.html","tests/chapter-7/arrays/dynamic/op-new.sv.html"]]

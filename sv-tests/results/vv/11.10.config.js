@@ -1,0 +1,1 @@
+config_loader_data['vv/11.10'] = [["","string_bit_array",0,"logs/vv/chapter-11/11.10--string_bit_array.sv.log.html","tests/chapter-11/11.10--string_bit_array.sv.html"],["","string_bit_array_sim",0,"logs/vv/chapter-11/11.10--string_bit_array-sim.sv.log.html","tests/chapter-11/11.10--string_bit_array-sim.sv.html"]]

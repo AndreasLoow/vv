@@ -1,0 +1,1 @@
+config_loader_data['vv/16.2'] = [["","assert_test",0,"logs/vv/chapter-16/16.2--assert.sv.log.html","tests/chapter-16/16.2--assert.sv.html"],["","assume_test",0,"logs/vv/chapter-16/16.2--assume.sv.log.html","tests/chapter-16/16.2--assume.sv.html"],["","cover_test",0,"logs/vv/chapter-16/16.2--cover.sv.log.html","tests/chapter-16/16.2--cover.sv.html"]]

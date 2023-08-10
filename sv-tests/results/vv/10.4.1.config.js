@@ -1,0 +1,1 @@
+config_loader_data['vv/10.4.1'] = [["","blocking_assignment",0,"logs/vv/chapter-10/10.4.1--blocking-assignment.sv.log.html","tests/chapter-10/10.4.1--blocking-assignment.sv.html"]]

@@ -1,0 +1,1 @@
+config_loader_data['vv/7.4.4'] = [["","memories-basic",0,"logs/vv/chapter-7/memories/basic.sv.log.html","tests/chapter-7/memories/basic.sv.html"],["","memories-read-write",0,"logs/vv/chapter-7/memories/read-write.sv.log.html","tests/chapter-7/memories/read-write.sv.html"]]

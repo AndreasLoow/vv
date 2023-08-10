@@ -1,0 +1,1 @@
+config_loader_data['vv/8.25.1'] = [["","parametrized_class_scope_resolution",0,"logs/vv/chapter-8/8.25.1--parametrized_class_scope_resolution.sv.log.html","tests/chapter-8/8.25.1--parametrized_class_scope_resolution.sv.html"]]

@@ -1,0 +1,1 @@
+config_loader_data['vv/7.8.1'] = [["","associative-arrays-other-types",0,"logs/vv/chapter-7/arrays/associative/other.sv.log.html","tests/chapter-7/arrays/associative/other.sv.html"],["","associative-arrays-wildcard",0,"logs/vv/chapter-7/arrays/associative/wildcard.sv.log.html","tests/chapter-7/arrays/associative/wildcard.sv.html"]]

@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="stylesheet" type="text/css" href="../../../code.css">
+  </head>
+  <body>  
+    <header id="header_code"><h2>tests/chapter-7/queues/slice.sv</h2></header>  
+    <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span class="normal"><a href="#l-1"> 1</a></span>
+<span class="normal"><a href="#l-2"> 2</a></span>
+<span class="normal"><a href="#l-3"> 3</a></span>
+<span class="normal"><a href="#l-4"> 4</a></span>
+<span class="normal"><a href="#l-5"> 5</a></span>
+<span class="normal"><a href="#l-6"> 6</a></span>
+<span class="normal"><a href="#l-7"> 7</a></span>
+<span class="normal"><a href="#l-8"> 8</a></span>
+<span class="normal"><a href="#l-9"> 9</a></span>
+<span class="normal"><a href="#l-10">10</a></span>
+<span class="normal"><a href="#l-11">11</a></span>
+<span class="normal"><a href="#l-12">12</a></span>
+<span class="normal"><a href="#l-13">13</a></span>
+<span class="normal"><a href="#l-14">14</a></span>
+<span class="normal"><a href="#l-15">15</a></span>
+<span class="normal"><a href="#l-16">16</a></span>
+<span class="normal"><a href="#l-17">17</a></span>
+<span class="normal"><a href="#l-18">18</a></span>
+<span class="normal"><a href="#l-19">19</a></span>
+<span class="normal"><a href="#l-20">20</a></span>
+<span class="normal"><a href="#l-21">21</a></span>
+<span class="normal"><a href="#l-22">22</a></span>
+<span class="normal"><a href="#l-23">23</a></span>
+<span class="normal"><a href="#l-24">24</a></span>
+<span class="normal"><a href="#l-25">25</a></span>
+<span class="normal"><a href="#l-26">26</a></span>
+<span class="normal"><a href="#l-27">27</a></span>
+<span class="normal"><a href="#l-28">28</a></span>
+<span class="normal"><a href="#l-29">29</a></span>
+<span class="normal"><a href="#l-30">30</a></span>
+<span class="normal"><a href="#l-31">31</a></span>
+<span class="normal"><a href="#l-32">32</a></span>
+<span class="normal"><a href="#l-33">33</a></span>
+<span class="normal"><a href="#l-34">34</a></span>
+<span class="normal"><a href="#l-35">35</a></span>
+<span class="normal"><a href="#l-36">36</a></span>
+<span class="normal"><a href="#l-37">37</a></span>
+<span class="normal"><a href="#l-38">38</a></span>
+<span class="normal"><a href="#l-39">39</a></span>
+<span class="normal"><a href="#l-40">40</a></span>
+<span class="normal"><a href="#l-41">41</a></span>
+<span class="normal"><a href="#l-42">42</a></span>
+<span class="normal"><a href="#l-43">43</a></span>
+<span class="normal"><a href="#l-44">44</a></span>
+<span class="normal"><a href="#l-45">45</a></span>
+<span class="normal"><a href="#l-46">46</a></span>
+<span class="normal"><a href="#l-47">47</a></span>
+<span class="normal"><a href="#l-48">48</a></span>
+<span class="normal"><a href="#l-49">49</a></span>
+<span class="normal"><a href="#l-50">50</a></span>
+<span class="normal"><a href="#l-51">51</a></span>
+<span class="normal"><a href="#l-52">52</a></span></pre></div></td><td class="code"><div><pre><span></span><a id="l-1" name="l-1"></a><span class="c1">// Copyright (C) 2019-2021  The SymbiFlow Authors.</span>
+<a id="l-2" name="l-2"></a><span class="c1">//</span>
+<a id="l-3" name="l-3"></a><span class="c1">// Use of this source code is governed by a ISC-style</span>
+<a id="l-4" name="l-4"></a><span class="c1">// license that can be found in the LICENSE file or at</span>
+<a id="l-5" name="l-5"></a><span class="c1">// https://opensource.org/licenses/ISC</span>
+<a id="l-6" name="l-6"></a><span class="c1">//</span>
+<a id="l-7" name="l-7"></a><span class="c1">// SPDX-License-Identifier: ISC</span>
+<a id="l-8" name="l-8"></a>
+<a id="l-9" name="l-9"></a>
+<a id="l-10" name="l-10"></a><span class="cm">/*</span>
+<a id="l-11" name="l-11"></a><span class="cm">:name: slice</span>
+<a id="l-12" name="l-12"></a><span class="cm">:description: Test queues slice support</span>
+<a id="l-13" name="l-13"></a><span class="cm">:tags: 7.10.1 7.10.2</span>
+<a id="l-14" name="l-14"></a><span class="cm">:type: simulation elaboration parsing</span>
+<a id="l-15" name="l-15"></a><span class="cm">*/</span>
+<a id="l-16" name="l-16"></a><span class="k">module</span><span class="w"> </span><span class="n">top</span><span class="w"> </span><span class="p">();</span>
+<a id="l-17" name="l-17"></a>
+<a id="l-18" name="l-18"></a><span class="kt">int</span><span class="w"> </span><span class="n">q</span><span class="p">[$</span><span class="o">:</span><span class="mi">5</span><span class="p">];</span>
+<a id="l-19" name="l-19"></a><span class="kt">int</span><span class="w"> </span><span class="n">r</span><span class="p">[$];</span>
+<a id="l-20" name="l-20"></a>
+<a id="l-21" name="l-21"></a><span class="k">initial</span><span class="w"> </span><span class="k">begin</span>
+<a id="l-22" name="l-22"></a><span class="w">	</span><span class="n">q</span><span class="p">.</span><span class="n">push_back</span><span class="p">(</span><span class="mi">0</span><span class="p">);</span>
+<a id="l-23" name="l-23"></a><span class="w">	</span><span class="n">q</span><span class="p">.</span><span class="n">push_back</span><span class="p">(</span><span class="mi">1</span><span class="p">);</span>
+<a id="l-24" name="l-24"></a><span class="w">	</span><span class="n">q</span><span class="p">.</span><span class="n">push_back</span><span class="p">(</span><span class="mi">2</span><span class="p">);</span>
+<a id="l-25" name="l-25"></a><span class="w">	</span><span class="n">q</span><span class="p">.</span><span class="n">push_back</span><span class="p">(</span><span class="mi">3</span><span class="p">);</span>
+<a id="l-26" name="l-26"></a><span class="w">	</span><span class="n">q</span><span class="p">.</span><span class="n">push_back</span><span class="p">(</span><span class="mi">4</span><span class="p">);</span>
+<a id="l-27" name="l-27"></a><span class="w">	</span><span class="n">q</span><span class="p">.</span><span class="n">push_back</span><span class="p">(</span><span class="mi">5</span><span class="p">);</span>
+<a id="l-28" name="l-28"></a><span class="w">	</span><span class="p">$</span><span class="n">display</span><span class="p">(</span><span class="s">&quot;:assert: (%d == 6)&quot;</span><span class="p">,</span><span class="w"> </span><span class="n">q</span><span class="p">.</span><span class="n">size</span><span class="p">);</span>
+<a id="l-29" name="l-29"></a>
+<a id="l-30" name="l-30"></a><span class="w">	</span><span class="n">r</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">q</span><span class="p">[</span><span class="w"> </span><span class="mi">2</span><span class="w"> </span><span class="o">:</span><span class="w"> </span><span class="mi">4</span><span class="w"> </span><span class="p">];</span>
+<a id="l-31" name="l-31"></a><span class="w">	</span><span class="p">$</span><span class="n">display</span><span class="p">(</span><span class="s">&quot;:assert: (%d == 3)&quot;</span><span class="p">,</span><span class="w"> </span><span class="n">r</span><span class="p">.</span><span class="n">size</span><span class="p">);</span><span class="w"> </span><span class="c1">// 4 - 2 + 1 elements</span>
+<a id="l-32" name="l-32"></a>
+<a id="l-33" name="l-33"></a><span class="w">	</span><span class="c1">// a &gt; b gives empty queue</span>
+<a id="l-34" name="l-34"></a><span class="w">	</span><span class="n">r</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">q</span><span class="p">[</span><span class="w"> </span><span class="mi">4</span><span class="w"> </span><span class="o">:</span><span class="w"> </span><span class="mi">2</span><span class="w"> </span><span class="p">];</span>
+<a id="l-35" name="l-35"></a><span class="w">	</span><span class="p">$</span><span class="n">display</span><span class="p">(</span><span class="s">&quot;:assert: (%d == 0)&quot;</span><span class="p">,</span><span class="w"> </span><span class="n">r</span><span class="p">.</span><span class="n">size</span><span class="p">);</span>
+<a id="l-36" name="l-36"></a>
+<a id="l-37" name="l-37"></a><span class="w">	</span><span class="c1">// a == b gives one element queue</span>
+<a id="l-38" name="l-38"></a><span class="w">	</span><span class="n">r</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">q</span><span class="p">[</span><span class="w"> </span><span class="mi">2</span><span class="w"> </span><span class="o">:</span><span class="w"> </span><span class="mi">2</span><span class="w"> </span><span class="p">];</span>
+<a id="l-39" name="l-39"></a><span class="w">	</span><span class="p">$</span><span class="n">display</span><span class="p">(</span><span class="s">&quot;:assert: (%d == 1)&quot;</span><span class="p">,</span><span class="w"> </span><span class="n">r</span><span class="p">.</span><span class="n">size</span><span class="p">);</span>
+<a id="l-40" name="l-40"></a>
+<a id="l-41" name="l-41"></a><span class="w">	</span><span class="c1">// a &lt; 0 is same as [ 0 : b ]</span>
+<a id="l-42" name="l-42"></a><span class="w">	</span><span class="n">r</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">q</span><span class="p">[</span><span class="w"> </span><span class="o">-</span><span class="mi">2</span><span class="w"> </span><span class="o">:</span><span class="w"> </span><span class="mi">2</span><span class="w"> </span><span class="p">];</span><span class="w"> </span><span class="c1">// 2 - 0 + 1 = 3</span>
+<a id="l-43" name="l-43"></a><span class="w">	</span><span class="p">$</span><span class="n">display</span><span class="p">(</span><span class="s">&quot;:assert: (%d == 3)&quot;</span><span class="p">,</span><span class="w"> </span><span class="n">r</span><span class="p">.</span><span class="n">size</span><span class="p">);</span>
+<a id="l-44" name="l-44"></a>
+<a id="l-45" name="l-45"></a><span class="w">	</span><span class="c1">// b &gt; $ is same as [ a : $ ]</span>
+<a id="l-46" name="l-46"></a><span class="w">	</span><span class="n">r</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">q</span><span class="p">[</span><span class="w"> </span><span class="mi">2</span><span class="w"> </span><span class="o">:</span><span class="w"> </span><span class="mi">10</span><span class="w"> </span><span class="p">];</span><span class="w"> </span><span class="c1">// 5 - 2 + 1 = 4</span>
+<a id="l-47" name="l-47"></a><span class="w">	</span><span class="p">$</span><span class="n">display</span><span class="p">(</span><span class="s">&quot;:assert: (%d == 4)&quot;</span><span class="p">,</span><span class="w"> </span><span class="n">r</span><span class="p">.</span><span class="n">size</span><span class="p">);</span>
+<a id="l-48" name="l-48"></a>
+<a id="l-49" name="l-49"></a><span class="w">	</span><span class="c1">// TODO: More invalid index values</span>
+<a id="l-50" name="l-50"></a><span class="k">end</span>
+<a id="l-51" name="l-51"></a>
+<a id="l-52" name="l-52"></a><span class="k">endmodule</span>
+</pre></div></td></tr></table></div>
+
+  </body>
+</html>

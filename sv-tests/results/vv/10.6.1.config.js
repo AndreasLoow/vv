@@ -1,0 +1,1 @@
+config_loader_data['vv/10.6.1'] = [["","assign_deassign",0,"logs/vv/chapter-10/10.6.1--assign-deassign.sv.log.html","tests/chapter-10/10.6.1--assign-deassign.sv.html"]]

@@ -1,0 +1,1 @@
+config_loader_data['vv/8.26.3'] = [["","type_access_extends",0,"logs/vv/chapter-8/8.26.3--type_access_extends.sv.log.html","tests/chapter-8/8.26.3--type_access_extends.sv.html"],["","type_access_implements",0,"logs/vv/chapter-8/8.26.3--type_access_implements.sv.log.html","tests/chapter-8/8.26.3--type_access_implements.sv.html"]]

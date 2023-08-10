@@ -1,0 +1,1 @@
+config_loader_data['vv/20.2'] = [["","exit_task",0,"logs/vv/chapter-20/20.2--exit.sv.log.html","tests/chapter-20/20.2--exit.sv.html"],["","finish_task",1,"logs/vv/chapter-20/20.2--finish.sv.log.html","tests/chapter-20/20.2--finish.sv.html"],["","stop_task",0,"logs/vv/chapter-20/20.2--stop.sv.log.html","tests/chapter-20/20.2--stop.sv.html"]]

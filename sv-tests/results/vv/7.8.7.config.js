@@ -1,0 +1,1 @@
+config_loader_data['vv/7.8.7'] = [["","associative-arrays-allocating-elements",0,"logs/vv/chapter-7/arrays/associative/alloc.sv.log.html","tests/chapter-7/arrays/associative/alloc.sv.html"]]

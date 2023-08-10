@@ -1,0 +1,1 @@
+config_loader_data['vv/9.4.2.2'] = [["","event_implicit",1,"logs/vv/chapter-9/9.4.2.2--event_implicit.sv.log.html","tests/chapter-9/9.4.2.2--event_implicit.sv.html"]]

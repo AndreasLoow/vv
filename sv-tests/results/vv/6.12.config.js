@@ -1,0 +1,1 @@
+config_loader_data['vv/6.12'] = [["","real",0,"logs/vv/chapter-6/6.12--real.sv.log.html","tests/chapter-6/6.12--real.sv.html"],["","realtime",0,"logs/vv/chapter-6/6.12--realtime.sv.log.html","tests/chapter-6/6.12--realtime.sv.html"],["","shortreal",0,"logs/vv/chapter-6/6.12--shortreal.sv.log.html","tests/chapter-6/6.12--shortreal.sv.html"]]

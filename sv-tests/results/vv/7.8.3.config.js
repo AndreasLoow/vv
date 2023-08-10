@@ -1,0 +1,1 @@
+config_loader_data['vv/7.8.3'] = [["","associative-arrays-class",0,"logs/vv/chapter-7/arrays/associative/class.sv.log.html","tests/chapter-7/arrays/associative/class.sv.html"]]

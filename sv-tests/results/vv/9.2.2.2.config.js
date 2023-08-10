@@ -1,0 +1,1 @@
+config_loader_data['vv/9.2.2.2'] = [["","always_comb",1,"logs/vv/chapter-9/9.2.2.2--always_comb.sv.log.html","tests/chapter-9/9.2.2.2--always_comb.sv.html"]]

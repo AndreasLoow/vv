@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="stylesheet" type="text/css" href="../../../code.css">
+  </head>
+  <body>  
+    <header id="header_code"><h2>tests/generic/member/class_member_test_9.sv</h2></header>  
+    <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span class="normal"><a href="#l-1"> 1</a></span>
+<span class="normal"><a href="#l-2"> 2</a></span>
+<span class="normal"><a href="#l-3"> 3</a></span>
+<span class="normal"><a href="#l-4"> 4</a></span>
+<span class="normal"><a href="#l-5"> 5</a></span>
+<span class="normal"><a href="#l-6"> 6</a></span>
+<span class="normal"><a href="#l-7"> 7</a></span>
+<span class="normal"><a href="#l-8"> 8</a></span>
+<span class="normal"><a href="#l-9"> 9</a></span>
+<span class="normal"><a href="#l-10">10</a></span>
+<span class="normal"><a href="#l-11">11</a></span>
+<span class="normal"><a href="#l-12">12</a></span>
+<span class="normal"><a href="#l-13">13</a></span>
+<span class="normal"><a href="#l-14">14</a></span>
+<span class="normal"><a href="#l-15">15</a></span>
+<span class="normal"><a href="#l-16">16</a></span>
+<span class="normal"><a href="#l-17">17</a></span>
+<span class="normal"><a href="#l-18">18</a></span>
+<span class="normal"><a href="#l-19">19</a></span>
+<span class="normal"><a href="#l-20">20</a></span>
+<span class="normal"><a href="#l-21">21</a></span>
+<span class="normal"><a href="#l-22">22</a></span>
+<span class="normal"><a href="#l-23">23</a></span></pre></div></td><td class="code"><div><pre><span></span><a id="l-1" name="l-1"></a><span class="c1">// Copyright (C) 2019-2021  The SymbiFlow Authors.</span>
+<a id="l-2" name="l-2"></a><span class="c1">//</span>
+<a id="l-3" name="l-3"></a><span class="c1">// Use of this source code is governed by a ISC-style</span>
+<a id="l-4" name="l-4"></a><span class="c1">// license that can be found in the LICENSE file or at</span>
+<a id="l-5" name="l-5"></a><span class="c1">// https://opensource.org/licenses/ISC</span>
+<a id="l-6" name="l-6"></a><span class="c1">//</span>
+<a id="l-7" name="l-7"></a><span class="c1">// SPDX-License-Identifier: ISC</span>
+<a id="l-8" name="l-8"></a>
+<a id="l-9" name="l-9"></a>
+<a id="l-10" name="l-10"></a><span class="cm">/*</span>
+<a id="l-11" name="l-11"></a><span class="cm">:name: class_member_test_9</span>
+<a id="l-12" name="l-12"></a><span class="cm">:description: Test</span>
+<a id="l-13" name="l-13"></a><span class="cm">:tags: 8.3</span>
+<a id="l-14" name="l-14"></a><span class="cm">*/</span>
+<a id="l-15" name="l-15"></a><span class="kd">class</span><span class="w"> </span><span class="nc">myclass</span><span class="p">;</span>
+<a id="l-16" name="l-16"></a><span class="k">typedef</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">arg_type</span><span class="p">;</span>
+<a id="l-17" name="l-17"></a><span class="k">extern</span><span class="w"> </span><span class="k">local</span><span class="w"> </span><span class="k">static</span><span class="w"> </span><span class="k">task</span><span class="w"> </span><span class="n">subtask</span><span class="p">(</span><span class="n">arg_type</span><span class="w"> </span><span class="n">arg</span><span class="p">);</span>
+<a id="l-18" name="l-18"></a><span class="kd">endclass</span>
+<a id="l-19" name="l-19"></a>
+<a id="l-20" name="l-20"></a><span class="k">task</span><span class="w"> </span><span class="n">myclass</span><span class="o">::</span><span class="n">subtask</span><span class="p">(</span><span class="n">arg_type</span><span class="w"> </span><span class="n">arg</span><span class="p">);</span><span class="w"> </span><span class="k">endtask</span>
+<a id="l-21" name="l-21"></a>
+<a id="l-22" name="l-22"></a><span class="k">module</span><span class="w"> </span><span class="n">test</span><span class="p">;</span>
+<a id="l-23" name="l-23"></a><span class="k">endmodule</span>
+</pre></div></td></tr></table></div>
+
+  </body>
+</html>

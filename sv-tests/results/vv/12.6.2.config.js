@@ -1,0 +1,1 @@
+config_loader_data['vv/12.6.2'] = [["","if_pattern",0,"logs/vv/chapter-12/12.6.2--if_pattern.sv.log.html","tests/chapter-12/12.6.2--if_pattern.sv.html"]]

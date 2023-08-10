@@ -1,0 +1,1 @@
+config_loader_data['vv/7.9.9'] = [["","associative-arrays-assignment",0,"logs/vv/chapter-7/arrays/associative/assignment.sv.log.html","tests/chapter-7/arrays/associative/assignment.sv.html"]]

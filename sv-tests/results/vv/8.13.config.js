@@ -1,0 +1,1 @@
+config_loader_data['vv/8.13'] = [["","inheritance",0,"logs/vv/chapter-8/8.13--inheritance.sv.log.html","tests/chapter-8/8.13--inheritance.sv.html"]]

@@ -1,0 +1,1 @@
+config_loader_data['vv/6.16.6'] = [["","string_compare_fn",0,"logs/vv/chapter-6/6.16.6--string_compare.sv.log.html","tests/chapter-6/6.16.6--string_compare.sv.html"]]

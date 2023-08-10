@@ -1,0 +1,1 @@
+config_loader_data['vv/18.6.3'] = [["","behavior_of_randomization_methods_0",0,"logs/vv/chapter-18/18.6.3--behavior-of-randomization-methods_0.sv.log.html","tests/chapter-18/18.6.3--behavior-of-randomization-methods_0.sv.html"]]

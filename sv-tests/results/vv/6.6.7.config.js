@@ -1,0 +1,1 @@
+config_loader_data['vv/6.6.7'] = [["","nettype",0,"logs/vv/chapter-6/6.6.7--nettype.sv.log.html","tests/chapter-6/6.6.7--nettype.sv.html"],["","nettype_resolution_fn",0,"logs/vv/chapter-6/6.6.7--nettype_resolution_fn.sv.log.html","tests/chapter-6/6.6.7--nettype_resolution_fn.sv.html"]]

@@ -1,0 +1,1 @@
+config_loader_data['vv/26.2'] = [["","package_decl",0,"logs/vv/chapter-26/26.2--package-decl.sv.log.html","tests/chapter-26/26.2--package-decl.sv.html"]]

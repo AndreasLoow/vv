@@ -1,0 +1,1 @@
+config_loader_data['vv/11.10.3'] = [["","empty_string",0,"logs/vv/chapter-11/11.10.3--empty_string.sv.log.html","tests/chapter-11/11.10.3--empty_string.sv.html"],["","empty_string_sim",0,"logs/vv/chapter-11/11.10.3--empty_string-sim.sv.log.html","tests/chapter-11/11.10.3--empty_string-sim.sv.html"]]

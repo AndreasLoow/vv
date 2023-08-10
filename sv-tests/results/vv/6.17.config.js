@@ -1,0 +1,1 @@
+config_loader_data['vv/6.17'] = [["","event",0,"logs/vv/chapter-6/6.17--event.sv.log.html","tests/chapter-6/6.17--event.sv.html"]]

@@ -1,0 +1,1 @@
+config_loader_data['vv/7.7'] = [["","unpacked-arrays-as-arguments-to-subroutines",0,"logs/vv/chapter-7/arrays/unpacked/subroutines.sv.log.html","tests/chapter-7/arrays/unpacked/subroutines.sv.html"]]

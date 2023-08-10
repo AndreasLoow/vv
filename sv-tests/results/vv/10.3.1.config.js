@@ -1,0 +1,1 @@
+config_loader_data['vv/10.3.1'] = [["","net_decl_assignment",0,"logs/vv/chapter-10/10.3.1--net-decl-assignment.sv.log.html","tests/chapter-10/10.3.1--net-decl-assignment.sv.html"],["","one_net_assign",0,"logs/vv/chapter-10/10.3.1--one-net.sv.log.html","tests/chapter-10/10.3.1--one-net.sv.html"]]

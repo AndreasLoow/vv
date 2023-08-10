@@ -1,0 +1,1 @@
+config_loader_data['vv/6.6.8'] = [["","interconnect",0,"logs/vv/chapter-6/6.6.8--interconnect.sv.log.html","tests/chapter-6/6.6.8--interconnect.sv.html"]]

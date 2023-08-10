@@ -1,0 +1,1 @@
+config_loader_data['vv/8.22'] = [["","dynamic_method_lookup",0,"logs/vv/chapter-8/8.22--dynamic_method_lookup.sv.log.html","tests/chapter-8/8.22--dynamic_method_lookup.sv.html"]]

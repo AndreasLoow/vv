@@ -1,0 +1,1 @@
+config_loader_data['vv/6.16.2'] = [["","string_putc",0,"logs/vv/chapter-6/6.16.2--string_putc.sv.log.html","tests/chapter-6/6.16.2--string_putc.sv.html"]]
