@@ -1,3 +1,5 @@
+@scope("window") @val external alert: string => unit = "alert"
+
 let joinNonEmpty = (join, ss) =>
  ss |> Js.Array.filter((s) => s != "") |> Js.Array.joinWith(join)
 

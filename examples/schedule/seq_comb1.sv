@@ -1,9 +1,11 @@
-module seq_cont1;
+module seq_comb1;
 
 // I'm not aware of any simulator that interleaves 
-// procedural processes, but some simulators, such as
+// procedural processes*, but some simulators, such as
 // Icarus, interleaves procedural processes and
 // continuous assignments.
+
+// * = see seq_comb2.sv for an exception
 
 // Consider the following:
 

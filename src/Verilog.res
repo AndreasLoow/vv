@@ -57,27 +57,41 @@ type proc_state = {
  state: proc_running_state
 }
 
-type status = Running | RunningFinals | Finished(option<value>)
+//
+// Running(None) = No procedural process currently running
+// Running(Some(i)) = Procedural process i currently running
+// RunningFinals = final processes, continuous processes not run during this phase
+// Finished(None) = finish without exit value
+// Finished(Some(v)) = finish with value v
+//
+type status = Running(option<int>) | RunningFinals | Finished(option<value>)
 
 let status_str = (s) =>
  switch s {
- | Running => "running"
+ | Running(None) => "running(no proc)"
+ | Running(Some(i)) => "running(proc: " ++ Belt.Int.toString(i) ++ ")"
  | RunningFinals => "running-finals"
  | Finished(None) => "finished"
  | Finished(Some(v)) => "finished(" ++ value_str(v) ++ ")"
  }
 
-let is_running = (s) =>
+let is_Running = (s) =>
  switch s {
- | Running => true
- | RunningFinals => true
+ | Running(_) => true
  | _ => false
+ }
+
+let dest_Finished = (s) =>
+ switch s {
+ | Finished(vopt) => vopt
+ | _ => Js.Exn.raiseError("bug: expected Finished")
  }
 
 // env is both nets and variables (cannot have name overlap anyway)
 type state =
  { vmodule: vmodule,
    status: status,
+   oldstatus: option<value>, // used to remember old Finished value during finals execution
    env: Belt.Map.String.t<value>,
    cont_env: array<value>, // latest computed value for conts
    proc_env: array<proc_state>,
@@ -332,6 +346,14 @@ let proc_inc_pc = (p, ps) => {
  }
 }
 
+// depends on if we are running finals or not...
+let get_proc = (s, i) =>
+ switch s.status {
+ | Running(_) => Belt.Array.getExn(s.vmodule.procs, i)
+ | RunningFinals => Belt.Array.getExn(s.vmodule.finals, i)
+ | Finished(_) => Js.Exn.raiseError("impossible")
+}
+
 let rec ee_is_sensitive_to = (ee, env, oldenv) =>
  switch ee {
  | EEPos(e) =>
@@ -413,8 +435,8 @@ let run_listeners = (s, contI, var, oldenv) => {
    |> Js.Array.mapi((ps, i) => (ps, i))
    |> Js.Array.filter(((ps, i)) =>
        ps.state == ProcStateWaiting &&
-       stm_is_sensitive_to(Belt.Array.getExn(Belt.Array.getExn(s.vmodule.procs, i).stmts, ps.pc), s.env, oldenv))
-   |> Js.Array.map(((ps, i)) => (proc_inc_pc(Belt.Array.getExn(s.vmodule.procs, i), ps), i))
+       stm_is_sensitive_to(Belt.Array.getExn(get_proc(s, i).stmts, ps.pc), s.env, oldenv))
+   |> Js.Array.map(((ps, i)) => (proc_inc_pc(get_proc(s, i), ps), i))
 
   // micro-optimisation in case nothing has changed
   let proc_env = toactivate == [] ? s.proc_env : Js.Array.copy(s.proc_env)
@@ -434,10 +456,21 @@ let run_listeners = (s, contI, var, oldenv) => {
  }
 }
 
+let init_finals = (s) => {
+ if Js.Array.length(s.vmodule.finals) == 0 {
+  s
+ } else {
+  let proc_env = Js.Array.map(_ => {pc: 0, state: ProcStateRunning}, s.vmodule.finals)
+  let active = Js.Array.mapi((_, i) => EventEvaluation(next_event_id(), i), s.vmodule.finals)
+  let time_slot = { active: active, inactive: [], nba: [] }
+  {...s, queue: [(s.time, time_slot)], proc_env: proc_env, status: RunningFinals, oldstatus: dest_Finished(s.status)}
+ }
+}
+
 let step_proc_goto = (s, i, jump) => {
  let proc_env = Js.Array.copy(s.proc_env)
  let ps = Belt.Array.getExn(proc_env, i)
- let p = Belt.Array.getExn(s.vmodule.procs, i)
+ let p = get_proc(s, i)
 
  let newpc = ps.pc + jump
 
@@ -521,8 +554,37 @@ let run_display = (s, str, es, prev) => {
  }
 }
 
-let rec step_proc = (s, i) => {
- let p = Belt.Array.getExn(s.vmodule.procs, i)
+type run_mode = SingleStep | MultiStep
+
+let focus_status = (status, i) =>
+ switch status {
+ | Running(None) => Running(Some(i))
+ | Running(Some(j)) =>
+   i == j ? Running(Some(j)) : Js.Exn.raiseError("impossible: refocusing?")
+ | RunningFinals => RunningFinals // focusing in finals mode has no effect
+ | Finished(_) => Js.Exn.raiseError("impossible: focusing when finished?")
+}
+
+let unfocus_status = (status) =>
+ switch status {
+ | Running(_) => Running(None)
+ | RunningFinals => RunningFinals // unfocusing in finals mode has no effect
+ | Finished(vopt) => Finished(vopt)
+}
+
+let readd_eval_event = (ei, s, i) => {
+ let (ts, queue0) = Belt.Array.getExn(s.queue, 0)
+ let active = Js.Array.copy(queue0.active)
+ let e = EventEvaluation(next_event_id(), i)
+ let _ = Js.Array.spliceInPlace(~pos=ei, ~remove=0, ~add=[e], active)
+ let queue0 = {...queue0, active: active}
+ let queue = Js.Array.copy(s.queue)
+ let _ = Belt.Array.setExn(queue, 0, (ts, queue0))
+ {...s, queue: queue, status: focus_status(s.status, i)}
+}
+
+let step_proc = (s, i) => {
+ let p = get_proc(s, i)
  let ps = Belt.Array.getExn(s.proc_env, i)
 
  switch Belt.Array.getExn(p.stmts, ps.pc) {
@@ -620,10 +682,13 @@ let rec step_proc = (s, i) => {
  | StmtFinish(e) =>
    let v = run_exp(s.env, e)
    let oldstatus = s.status
-   let s = {...s, status: Finished(Some(v))}
+   let ps = {...ps, state: ProcStateWaiting}
+   let proc_env = Js.Array.copy(s.proc_env)
+   let _ = Belt.Array.setExn(proc_env, i, ps)
+   let s = {...s, proc_env: proc_env, status: Finished(Some(v))}
 
    switch oldstatus {
-   | Running => run_finals(s)
+   | Running(_) => init_finals(s)
    | _ => s
    }
 
@@ -643,50 +708,45 @@ let rec step_proc = (s, i) => {
  }
 }
 
-and steps_proc = (s, i) => {
- let fuel = ref(0)
- let sref = ref(s)
+let steps_proc = (mode, ei, s, i) =>
+ switch mode {
+ | SingleStep =>
+   let oldstatus = s.status
+   let s = Belt.Array.getExn(s.proc_env, i).state == ProcStateRunning
+           ? step_proc(s, i)
+           : s
 
- while fuel.contents < 100 &&
-       is_running(sref.contents.status) &&
-       Belt.Array.getExn(sref.contents.proc_env, i).state == ProcStateRunning {
-   fuel := fuel.contents + 1
+   if (is_Running(s.status) || oldstatus == RunningFinals) &&
+      Belt.Array.getExn(s.proc_env, i).state == ProcStateRunning {
+    // schedule new eval event...
+    readd_eval_event(ei, s, i)
+   } else {
+    // execution finished
+    {...s, status: unfocus_status(s.status)}
+   }
 
-   sref := step_proc(sref.contents, i)
+ | MultiStep => 
+   let fuel = ref(0)
+   let s = {...s, status: unfocus_status(s.status)}
+   let oldstatus = s.status
+   let sref = ref(s)
+
+   while fuel.contents <= 100 &&
+         (is_Running(sref.contents.status) || oldstatus == RunningFinals) &&
+         Belt.Array.getExn(sref.contents.proc_env, i).state == ProcStateRunning {
+     if fuel.contents == 100 {
+      // Lazy error reporting, will double report in development mode
+      Utils.alert("Out of fuel: possible infinite loop?")
+      sref := readd_eval_event(ei, sref.contents, i)
+     } else {
+      sref := step_proc(sref.contents, i)
+     }
+     
+     fuel := fuel.contents + 1
+   }
+
+   sref.contents
  }
-
- if fuel.contents == 100 { Js.Exn.raiseError("time out!") }
-
- sref.contents
-}
-
-and run_finals_itr = (s, i) =>
- if (i >= Js.Array.length(s.vmodule.finals)) {
-  s
- } else {
-  let p = Belt.Array.getExn(s.vmodule.finals, i)
-
-  let _ = Js.Array.push(p, s.vmodule.procs)
-  let final_ps = {pc: 0, state: ProcStateRunning}
-  let j = Js.Array.push(final_ps, s.proc_env)
-
-  let s = steps_proc(s, j - 1)
-  let _ = Js.Array.pop(s.vmodule.procs)
-  let _ = Js.Array.pop(s.proc_env)
-
-  is_running(s.status)
-  ? run_finals_itr(s, i + 1)
-  : s
- }
-
-and run_finals = (s) => {
- let oldstatus = s.status
- let s = {...s, proc_env: Js.Array.copy(s.proc_env), status: RunningFinals}
- let s = run_finals_itr(s, 0)
-
- // Restore old status in case $finish was not called again
- is_running(s.status) ? {...s, status: oldstatus} : s
-}
 
 let region_shift = (region, ei) => {
  let e = Belt.Array.getExn(region, ei)
@@ -733,7 +793,8 @@ let build_state = (m : vmodule, old_process_nba_first) => {
  let env = Belt.Array.reduce(m.vars, env, (env, d) => Belt.Map.String.set(env, d.target, run_exp_init(env, d.init)))
 
  { vmodule: m,
-   status: Running,
+   status: Running(None),
+   oldstatus: None,
    env: env,
    // ASSUMPTION: Based on what simulators seem to do, this should be X,
    //             but I haven't found anything in the standard saying this.
@@ -772,9 +833,26 @@ let run_init = (s:state) => {
   {...s, queue: queue}
  }
 
+let event_active_event = (i, s) =>
+ switch s.status {
+ | Running(None) => true
+ | Running(Some(pi)) =>
+   let e = Belt.Array.getExn(snd(Belt.Array.getExn(s.queue, 0)).active, i)
+   switch e {
+   | EventContUpdate(_, _, _) => true // note: could have this as an option...
+   | EventBlockUpdate(_, _, _, _) => false
+   | EventNBA(_, _, _) => false
+   | EventEvaluation(_, j) => pi == j
+   | EventDelayedEvaluation(_, _) => false
+   | Events(_, _) => false
+   }
+ | RunningFinals => i == 0 // process finals in order... first process first...
+ | _ => false
+ } 
+
 let event_active = (s, time, i) =>
- s.status == Running &&
  s.time == time &&
+ event_active_event(i, s) &&
  (!s.process_nba_first ||
   switch s.queue[0] {
   | None => true
@@ -785,9 +863,18 @@ let event_active = (s, time, i) =>
     }
   })
 
+let event_MultiStep = (s, time, e) =>
+ s.time == time &&
+ switch e {
+ | EventBlockUpdate(_, _, _, _) => true
+ | EventEvaluation(_, _) => true
+ | EventDelayedEvaluation(_, _) => true
+ | _ => false
+ }
+
 // Precondition: event_active(s, <current time>, i) must be true
 // run active event nr. ei
-let run_event = (s:state, ei:int) => {
+let run_event = (mode:run_mode, s:state, ei:int) => {
  // remove run event
  let (ts, queue0) = Belt.Array.getExn(s.queue, 0)
  let active = Js.Array.copy(queue0.active)
@@ -824,7 +911,7 @@ let run_event = (s:state, ei:int) => {
    let env = Belt.Map.String.set(s.env, var, newv)
 
    let ps = Belt.Array.getExn(s.proc_env, i)
-   let p = Belt.Array.getExn(s.vmodule.procs, i)
+   let p = get_proc(s, i)
    let ps = proc_inc_pc(p, ps)
    let proc_env = Js.Array.copy(s.proc_env)
    let _ = Belt.Array.setExn(proc_env, i, ps)
@@ -832,20 +919,20 @@ let run_event = (s:state, ei:int) => {
    let s = {...s, proc_env: proc_env, env: env}
    let s = run_listeners(s, -1, var, oldenv)
 
-   steps_proc(s, i)
+   steps_proc(mode, ei, s, i)
 
  | EventEvaluation(_, i) =>
-   steps_proc(s, i)
+   steps_proc(mode, ei, s, i)
 
  | EventDelayedEvaluation(_, i) =>
-   let p = Belt.Array.getExn(s.vmodule.procs, i)
+   let p = get_proc(s, i)
    let ps = Belt.Array.getExn(s.proc_env, i)
    let ps = proc_inc_pc(p, ps)
    let proc_env = Js.Array.copy(s.proc_env)
    let _ = Belt.Array.setExn(proc_env, i, ps)
    let s = {...s, proc_env: proc_env}
 
-   steps_proc(s, i)
+   steps_proc(mode, ei, s, i)
 
  | Events(_, es) =>
    let es = Js.Array.copy(es)
@@ -864,7 +951,7 @@ let run_event = (s:state, ei:int) => {
 }
 
 let inactive_done_active = (s, time) =>
- s.status == Running &&
+ s.status == Running(None) &&
  s.time == time &&
  (switch Belt.Array.getExn(s.queue, 0) {
   | (_, queue0) =>
@@ -883,7 +970,7 @@ let run_inactive_done = (s) => {
 }
 
 let nba_done_active = (s, time) =>
- s.status == Running &&
+ s.status == Running(None) &&
  s.time == time &&
  (switch Belt.Array.getExn(s.queue, 0) {
   | (_, queue0) =>
@@ -904,14 +991,16 @@ let run_nba_done = (s) => {
 }
 
 let time_active = (s) => {
- if s.status == Running {
+ if s.status == Running(None) || s.status == RunningFinals {
   let len = Js.Array.length(s.queue)
 
   if len == 0 {
    Js.Exn.raiseError("impossible")
   } else {
    let region = snd(Belt.Array.getExn(s.queue, 0))
-   region.active == [] && region.inactive == [] && region.nba == []
+   // for running finals, only active region matters
+   region.active == [] && 
+   (s.status == Running(None) ? region.inactive == [] && region.nba == [] : true)
   }
  } else {
   false
@@ -928,15 +1017,22 @@ let run_monitor = (s) =>
 
 // Precondition: time_done(s) must be true
 let run_time = (s) => {
- let s = run_monitor(s)
- let queue = Js.Array.copy(s.queue)
- let _ = Js.Array.shift(queue)
+ switch s.status {
+  | Running(None) =>
+    let s = run_monitor(s)
+    let queue = Js.Array.copy(s.queue)
+    let _ = Js.Array.shift(queue)
 
- if Js.Array.length(queue) == 0 {
-  let s = {...s, queue: queue, status: Finished(None)}
-  run_finals(s)
- } else {
-  let (time, _) = Belt.Array.getExn(queue, 0)
-  {...s, queue: queue, time: time}
+    if Js.Array.length(queue) == 0 {
+     let s = {...s, status: Finished(None)}
+     init_finals(s)
+    } else {
+     let (time, _) = Belt.Array.getExn(queue, 0)
+     {...s, queue: queue, time: time}
+    }
+  | RunningFinals =>
+    {...s, status: Finished(s.oldstatus), oldstatus: None}
+     
+  | _ => Js.Exn.raiseError("impossible")
  }
 }

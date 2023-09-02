@@ -1,6 +1,6 @@
-module seq_cont3;
+module seq_comb4;
 
-// Extension of seq_cont1, does it matter if the
+// Extension of seq_comb1, does it matter if the
 // continuous assignment is writing to a variable
 // instead of a net?
 

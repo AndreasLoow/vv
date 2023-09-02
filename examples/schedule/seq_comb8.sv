@@ -1,4 +1,4 @@
-module seq_cont6;
+module seq_comb8;
 
 // Further investigations into interleavings between
 // procedural processes and continuous assignments:
@@ -24,7 +24,7 @@ initial $monitor("%b%b%b", a, b, c);
 // be synthesisable. Yosys considers it synthesisable
 // and gives the following:
 //
-// module seq_cont6;
+// module seq_comb8;
 //  wire a = 1'h1;
 //  wire b = 1'h1;
 //  wire c = 1'h1;

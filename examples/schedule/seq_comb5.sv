@@ -1,10 +1,10 @@
-module seq_cont4;
+module seq_comb5;
 
-// Extension of seq_cont1, similar to seq_cont3
+// Extension of seq_comb1, similar to seq_comb4
 // but now with gate primitives instead
 
 // Interestingly, the simulator Aldec Riviera-PRO
-// gives the following for seq_cont3:
+// gives the following for seq_comb4:
 //
 // out_net = x, out_var = x
 // out_net = x, out_var = x

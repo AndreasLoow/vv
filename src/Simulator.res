@@ -1,5 +1,4 @@
 @module("./parser") external parse: string => AstParse.parse_result = "parse"
-@scope("window") @val external alert: string => unit = "alert"
 
 open Verilog
 
@@ -18,8 +17,8 @@ let make = () => {
 
   let (state, setState) = React.useState(_ => sinit)
 
-  let handle_event = (time, i, _e) => {
-   setState(s => if event_active(s, time, i) { run_event(s, i) } else { s })
+  let handle_event = (mode, time, i, _e) => {
+   setState(s => if event_active(s, time, i) { run_event(mode, s, i) } else { s })
   }
 
   let handle_inactive_done = (time, _e) => {
@@ -42,6 +41,9 @@ let make = () => {
   let className_wrapper = (b) =>
    b ? "active" : ""
 
+  let className_wrapper_span = (b) =>
+   b ? "active-span" : ""
+
   let (parseState, setParseState) = React.useState(_ => Belt.Map.String.getExn(Templates.templates, "empty.sv"))
 
   let handle_parse = (_e) => {
@@ -54,12 +56,12 @@ let make = () => {
      | m =>
        let s = run_init(build_state(m, state.process_nba_first))
        setState(_ => s)
-     | exception Elaborator.ElaboratorError(msg) => alert("Elaboration failed: " ++ msg)
-     | exception Compiler.CompileError(msg) => alert("Compilation failed: " ++ msg)
+     | exception Elaborator.ElaboratorError(msg) => Utils.alert("Elaboration failed: " ++ msg)
+     | exception Compiler.CompileError(msg) => Utils.alert("Compilation failed: " ++ msg)
      }
    | ParseFail(err) =>
      //Js.log(err)
-     alert("Could not parse Verilog code: " ++ err)
+     Utils.alert("Could not parse Verilog code: " ++ err)
    }
   }
 
@@ -73,8 +75,6 @@ let make = () => {
    setParseState(_ => Belt.Map.String.getExn(Templates.templates, val))
    ReactEvent.Form.preventDefault(e)
   }
-
-  let time = React.string("Simulation time: " ++ Belt.Int.toString(state.time) ++ " (" ++ status_str(state.status) ++ ")")
 
   let env = Belt.Array.map(Belt.Map.String.toArray(state.env), ((k, v)) => {
    <li key={ k }> { React.string(k ++ ": " ++ Ast.value_str(v)) } </li>
@@ -92,9 +92,12 @@ let make = () => {
    let active_es =
     Belt.Array.mapWithIndex(q.active, (i, e) =>
      <li key={ event_key(e) }
-         onClick={ handle_event(qi, i) }
-         className={ className_wrapper(event_active(state, qi, i)) }>
-      { Pp.event_str(state.vmodule.conts, e) }
+         className={ className_wrapper_span(event_active(state, qi, i)) }>
+       <span onClick={ handle_event(SingleStep, qi, i) }> { Pp.event_str(state.vmodule.conts, e) } </span>
+       { if event_MultiStep(state, qi, e)
+        { <span className={"multistep"} onClick={ handle_event(MultiStep, qi, i) }> { React.string("⏩") } </span> }
+       else
+        { React.null } }
      </li>)
 
    let inactive_es =
@@ -145,7 +148,11 @@ let make = () => {
   </td>
   <td><p id="code-render-title">{ React.string("Normalised Verilog module:") }</p><div id="code-render">{ Pp.vmodule_str(state.vmodule, state.proc_env) }</div></td>
   <td>
-   <p id="simulation-time" onClick={ handle_time } className={ className_wrapper(time_active(state)) }>{ time }</p>
+   <p id="simulation-time" onClick={ handle_time } className={ className_wrapper(time_active(state)) }>
+     { React.string("Simulation time: " ++ Belt.Int.toString(state.time)) }
+   </p>
+
+   <p>{ React.string("Status: " ++ status_str(state.status)) }</p>
 
    <p>{ React.string("Environment:") }</p>
    <ul>{ React.array(env) }</ul>
@@ -156,7 +163,7 @@ let make = () => {
    <p>{ React.string("Processes:") }</p>
    <ol>{ React.array(proc_env) }</ol>
 
-   <p className={""}>{ React.string("Events:") }</p>
+   <p>{ React.string("Events:") }</p>
    <ul>{ React.array(events) }</ul>
 
    <p>{ React.string("Monitor:") }</p>

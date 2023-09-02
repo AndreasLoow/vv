@@ -135,9 +135,8 @@ let proc_type_str = (t) =>
  }
 
 let proc_str = (proc_env, p, i) => {
- let proc_comment = p.proc_type == ProcFinal
-                    ? []
-                    : [<span className="comment"> { React.string("// Process " ++ Belt.Int.toString(i + 1)) } </span>]
+ let proc_name = p.proc_type == ProcFinal ? "Final block" : "Process"
+ let proc_comment = [<span className="comment"> { React.string("// " ++ proc_name ++ " " ++ Belt.Int.toString(i + 1)) } </span>]
  let pc = p.proc_type == ProcFinal || Belt.Array.getExn(proc_env, i).state == ProcStateFinished
           ? -1
           : Belt.Array.getExn(proc_env, i).pc

@@ -1,6 +1,6 @@
-module seq_cont5;
+module seq_comb7;
 
-// Variant of seq_cont1, some
+// Variant of seq_comb1, some
 // simulators will not print "cont!"
 
 logic a_cont, a_proc, out_proc;
