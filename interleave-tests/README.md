@@ -10,9 +10,9 @@ The simulator versions used are (from EDA playground and local installation):
 
 The key takeaways are:
 
-- In general, the execution of procedural blocks are not interleaved with other procedural blocks or continuous assignments. However, some special edge cases exist. E.g., some simple assignments (both procedural and continuous) are interleaved with procedural blocks.
+- In general, the execution of procedural blocks are not interleaved with other procedural blocks or continuous assignments. However, some special edge cases exist. E.g., procedural block are sometimes interleaved with simple assignments, both procedural and continuous, by some simulators.
 
-- Synopsys breaks this general pattern and interleaves execution of initial blocks with continuous assignments, but not other procedural blocks (except for special edge cases). Synopsys does not interleave always/always_comb blocks (except for special edge cases).
+- VCS breaks this general pattern and interleaves execution of initial blocks with continuous assignments, but not other procedural blocks (except for special edge cases). However, VCS does not interleave the execution of always/always_comb blocks (except for special edge cases).
 
 For more details, see the comments in the included Verilog files.
 
