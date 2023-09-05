@@ -41,7 +41,7 @@ Synopsys interleaves all continuous assignments and gate assignments (for both v
 Interestingly, the simple always@(*) assignment (but not the always_comb assignment) is interleaved
 in the scalar case but not the array case...
 
-Icarus only interleaves the simple assignments assignment (for both variables and nets).
+Icarus only interleaves the simple continuous assignment (for both variables and nets).
 
 */
 
@@ -70,7 +70,7 @@ always @(*) b2 = a;
 always @(*) b3 = a + 1;
 
 always_comb b4 = a;
-always_comb b5= a + 1;
+always_comb b5 = a + 1;
 
 buf (b6, a);
 not (b7, a);

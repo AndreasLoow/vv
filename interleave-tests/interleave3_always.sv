@@ -102,7 +102,7 @@ always @(*) b[2] = a;
 always @(*) b[3] = a + 1;
 
 always_comb b[4] = a;
-always_comb b[5]= a + 1;
+always_comb b[5] = a + 1;
 
 buf (b[6], a);
 not (b[7], a);

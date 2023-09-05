@@ -84,7 +84,7 @@ always @(*) b2 = a;
 always @(*) b3 = a + 1;
 
 always_comb b4 = a;
-always_comb b5= a + 1;
+always_comb b5 = a + 1;
 
 buf (b6, a);
 not (b7, a);

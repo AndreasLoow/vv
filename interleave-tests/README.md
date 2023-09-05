@@ -1,4 +1,4 @@
-This directory constrains a small-scale systematic experiment on how much current Verilog simulators interleave procedural blocks and continuous assignments.
+This directory constrains a small-scale systematic experiment on how much current Verilog simulators interleave procedural blocks with other procedural blocks and continuous assignments.
 
 The simulator versions used are (from EDA playground and local installation):
 
@@ -10,9 +10,9 @@ The simulator versions used are (from EDA playground and local installation):
 
 The key takeaways are:
 
-- Synopsys interleaves continuous assignments in the execution of procedural blocks, which other simulators only do in special edge cases.
+- In general, the execution of procedural blocks are not interleaved with other procedural blocks or continuous assignments. However, some special edge cases exist. E.g., some simple assignments (both procedural and continuous) are interleaved with procedural blocks.
 
-- No simulator interleaves procedural blocks in the execution of other procedural blocks, except in special edge cases.
+- Synopsys breaks this general pattern and interleaves execution of initial blocks with continuous assignments, but not other procedural blocks (except for special edge cases). Synopsys does not interleave always/always_comb blocks (except for special edge cases).
 
 For more details, see the comments in the included Verilog files.
 
