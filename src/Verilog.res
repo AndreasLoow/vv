@@ -837,12 +837,8 @@ let event_active_event = (i, s) =>
  | Running(Some(pi)) =>
    let e = Belt.Array.getExn(snd(Belt.Array.getExn(s.queue, 0)).active, i)
    switch e {
-   | EventContUpdate(_, _, _) => true // note: could have this as an option...
-   | EventBlockUpdate(_, _, _, _) => false
-   | EventNBA(_, _, _) => false
    | EventEvaluation(_, j) => pi == j
-   | EventDelayedEvaluation(_, _) => false
-   | Events(_, _) => false
+   | _ => false
    }
  | RunningFinals => i == 0 // process finals in order... first process first...
  | _ => false
