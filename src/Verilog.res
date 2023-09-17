@@ -68,8 +68,8 @@ type status = Running(option<int>) | RunningFinals | Finished(option<value>)
 
 let status_str = (s) =>
  switch s {
- | Running(None) => "running(no proc)"
- | Running(Some(i)) => "running(proc: " ++ Belt.Int.toString(i) ++ ")"
+ | Running(None) => "running (no focus)"
+ | Running(Some(i)) => "running (proc " ++ Belt.Int.toString(i+1) ++ " focused)"
  | RunningFinals => "running-finals"
  | Finished(None) => "finished"
  | Finished(Some(v)) => "finished(" ++ value_str(v) ++ ")"
