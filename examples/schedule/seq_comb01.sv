@@ -1,40 +1,32 @@
 module seq_comb01;
 
+// In these seq_comb* modules we discuss some examples of
+// interleavings of procedural processes, continuous 
+// assignments, and gates.
+
+// As discussed in the VV paper, arbitrary interleavings
+// cannot be allowed. Nevertheless, some existing simulators,
+// in some edge cases, do interleavings.
+
+// See the VV paper for a more in-depth discussion and
+// the directory interleave-tests in the VV source
+// repository for data on how a selection of existing
+// Verilog simulators handle interleavings.
+
+// Here follows a simple example:
+
 logic a;
 
-logic[9:0] b;
+wire b;
 
-wire[3:0] c;
+assign b = a;
 
+// Should it be possible to print b = x for before but
+// b = 1 for after?
 initial begin
- $display("before: a = %b, b = %b, c = %b", a, b, c);
+ $display("before: a = %b, b = %b", a, b);
  a = 1;
- $display("after:  a = %b, b = %b, c = %b", a, b, c);
+ $display("after:  a = %b, b = %b", a, b);
 end
-
-// Assignments to variable
-
-assign b[0] = a;
-assign b[1] = a + 1;
-
-always @(*) b[2] = a;
-always @(*) b[3] = a + 1;
-
-always_comb b[4] = a;
-always_comb b[5] = a + 1;
-
-always_comb b[6] = a;
-always_comb b[7] = a + 1;
-
-buf (b[8], a);
-and (b[9], a, a);
-
-// Assignments to net
-
-assign c[0] = a;
-assign c[1] = a + 1;
-
-buf (c[2], a);
-and (c[3], a, a);
 
 endmodule

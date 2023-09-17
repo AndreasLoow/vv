@@ -1,43 +1,45 @@
 module seq_comb07;
 
-// Test of more complex and deeper propagation
-// for continuous assignments
+/*
 
-// Riviera, Xcelium, and Questa give:
-//
-// 1 =(xx) !(xx) ~(xx) +(xx)
-//
-// VCS gives:
-//
-// 1 =(11) !(01) ~(01) +(01)
-//
-// Icarus gives:
-//
-// 1 =(11) !(01) ~(xx) +(xx)
+More propagation test
+
+Some simulators give:
+
+1 -> x -> x -> x -> x
+1 -> 0 -> x -> x -> x
+1 -> 0 -> 1 -> x -> x
+1 -> 0 -> 1 -> 0 -> x
+1 -> 0 -> 1 -> 0 -> 1
+
+whereas others simply give:
+
+1 -> x -> x -> x -> x
+1 -> 0 -> 1 -> 0 -> 1
+
+(Can be a result of running all blocks
+and continuous assignments in declaration
+order vs. running blocks and continuous
+assignments in separate phases.)
+
+*/
 
 logic a;
 
-wire b1, b2, b3, b4, b5, b6, b7, b8;
+wire b1, b2, b3, b4;
 
-initial begin
+always_comb begin
  a = 1;
- $display("%b =(%b%b) !(%b%b) ~(%b%b) +(%b%b)", a, b1, b2, b3, b4, b5, b6, b7, b8);
+ $display("%b -> %b -> %b -> %b -> %b",
+          a, b1, b2, b3, b4);
 end
 
-assign b1 = a;
+assign b1 = a + 1;
 
-assign b2 = b1;
+assign b2 = b1 + 1;
 
-assign b3 = !a;
+assign b3 = b2 + 1;
 
-assign b4 = !b3;
-
-assign b5 = ~a;
-
-assign b6 = ~b5;
-
-assign b7 = a + 1;
-
-assign b8 = b7 + 1;
+assign b4 = b3 + 1;
 
 endmodule

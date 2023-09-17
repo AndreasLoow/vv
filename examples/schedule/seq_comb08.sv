@@ -1,45 +1,24 @@
 module seq_comb08;
 
-/*
+// Variant of seq_comb01, some
+// simulators will not print "cont!"
 
-More propagation test
+logic a_cont, a_proc, out_proc;
 
-Some simulators give:
+wire out_cont = a_cont;
 
-1 -> x -> x -> x -> x
-1 -> 0 -> x -> x -> x
-1 -> 0 -> 1 -> x -> x
-1 -> 0 -> 1 -> 0 -> x
-1 -> 0 -> 1 -> 0 -> 1
+always_comb out_proc = a_proc;
 
-whereas others simply give:
-
-1 -> x -> x -> x -> x
-1 -> 0 -> 1 -> 0 -> 1
-
-(Can be a result of running all blocks
-and continuous assignments in declaration
-order vs. running blocks and continuous
-assignments in separate phases.)
-
-*/
-
-logic a;
-
-wire b1, b2, b3, b4;
-
-always_comb begin
- a = 1;
- $display("%b -> %b -> %b -> %b -> %b",
-          a, b1, b2, b3, b4);
+initial begin
+ a_cont = 1;
+ @(posedge out_cont);
+ $display("cont!");
 end
 
-assign b1 = a + 1;
-
-assign b2 = b1 + 1;
-
-assign b3 = b2 + 1;
-
-assign b4 = b3 + 1;
+initial begin
+ a_proc = 1;
+ @(posedge out_proc);
+ $display("proc!");
+end
 
 endmodule

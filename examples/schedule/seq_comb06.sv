@@ -1,46 +1,43 @@
 module seq_comb06;
 
-/*
+// Test of more complex and deeper propagation
+// for continuous assignments
 
-Summary of previous modules:
+// Riviera, Xcelium, and Questa give:
+//
+// 1 =(xx) !(xx) ~(xx) +(xx)
+//
+// VCS gives:
+//
+// 1 =(11) !(01) ~(01) +(01)
+//
+// Icarus gives:
+//
+// 1 =(11) !(01) ~(xx) +(xx)
 
-Aldec Riviera Pro 2022.44:
-1xxxx1x
+logic a;
 
-Cadence Xcelium 20.09, Mentor Questa 2021.3:
-1xxxxxx
-
-Synopsys VCS 2012.09:
-11x1111
-
-Icarus 13.0:
-1xx11xx
-
-*/
-
-logic a,
- b_var_always, b_var_always_comb,
- b_var_assign, b_var_gate;
-
-wire b_net_assign, b_net_gate;
+wire b1, b2, b3, b4, b5, b6, b7, b8;
 
 initial begin
  a = 1;
- $display("%b%b%b%b%b%b%b", a, b_var_always,
-          b_var_always_comb, b_var_assign,
-          b_net_assign, b_var_gate, b_net_gate);
+ $display("%b =(%b%b) !(%b%b) ~(%b%b) +(%b%b)", a, b1, b2, b3, b4, b5, b6, b7, b8);
 end
 
-always @(*) b_var_always = a;
+assign b1 = a;
 
-always_comb b_var_always_comb = a;
+assign b2 = b1;
 
-assign b_var_assign = a;
+assign b3 = !a;
 
-assign b_net_assign = a;
+assign b4 = !b3;
 
-buf (b_var_gate, a);
+assign b5 = ~a;
 
-buf (b_net_gate, a);
-  
+assign b6 = ~b5;
+
+assign b7 = a + 1;
+
+assign b8 = b7 + 1;
+
 endmodule
