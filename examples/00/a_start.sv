@@ -1,6 +1,6 @@
-// Welcome to VV, an interactive Verilog simulator!
+// Welcome to VV -- an interactive Verilog simulator!
 
-// This directory contains a short series of modules
+// This directory ("00") contains a short series of modules
 // that illustrate basic aspects of Verilog and VV;
 // hopefully the modules should provide sufficient
 // background to understand the other modules
@@ -34,7 +34,7 @@ endmodule
 //
 // - active,
 // - inactive,
-// - and nba (nonblocking assignments).
+// - and NBA (nonblocking assignments).
 
 // After loading the above module, you will see a
 // blue-marked event in the active region for time 0.
@@ -46,6 +46,12 @@ endmodule
 // event, the variable "a" now has value 0 in the
 // environment since the assignment in the process
 // has now been executed.
+
+// (Clicking the fast-forward arrow right of the blue
+// event will run the process until it blocks -- we 
+// will see the difference between single-stepping
+// and multi-stepping a process in other modules in
+// this directory.)
 
 // There are now no more events to execute in the
 // current time, therefore "Simulation time" is now

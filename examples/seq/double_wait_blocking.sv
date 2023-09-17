@@ -1,7 +1,6 @@
 module double_wait_blocking;
 
-// Variant of nonblocking_ndet;
-// see also double_wait_nonblocking
+// See also double_wait_nonblocking
 
 logic a;
 

@@ -1,7 +1,11 @@
 module double_wait_nonblocking;
 
-// Variant of nonblocking_ndet;
-// see also double_wait_blocking
+// See also double_wait_blocking,
+// because NBA events do not mix with
+// other events in the active region
+// nonblocking assignments are not more
+// nondeterministic/allow for more 
+// interleavings than blocking assignments.
 
 logic a;
 

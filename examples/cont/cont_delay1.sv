@@ -14,9 +14,9 @@ module cont_delay1;
 // In our reading of the standard, the net delay is
 // simply added to add continuous assignment delays.
 
-// (I am very interested in problems with this reading
-// of the standard. It is not clear that this is the
-// intended meaning.)
+// (It is not clear that this is the intended meaning.
+// Please ping me in case you know a problem with the
+// semantics implemented here.)
 
 // When stepping through VV, note that the update to
 // net a "cancels" the update to the b net.

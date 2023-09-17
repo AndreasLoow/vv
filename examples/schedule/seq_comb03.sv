@@ -1,6 +1,6 @@
-module seq_comb3;
+module seq_comb03;
 
-// Extension of seq_comb1, including two gate primitives
+// Extension of seq_comb01, including two gate primitives
 
 logic a, out_proc;
 

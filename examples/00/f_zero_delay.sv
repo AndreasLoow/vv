@@ -1,4 +1,4 @@
-module d_zero_delay;
+module f_zero_delay;
 
 logic a;
  
@@ -12,6 +12,6 @@ initial a = 1;
 
 // However, modern Verilog uses nonblocking assignments for
 // communication between processes, as illustrated in
-// the e_nonblocking module
+// the subsequent modules.
 
 endmodule

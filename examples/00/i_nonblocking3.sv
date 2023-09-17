@@ -1,4 +1,7 @@
-module e_nonblocking1;
+module i_nonblocking3;
+
+// We now consider blocking (=) vs. nonblocking (<=)
+// assignments in real-world code.
 
 logic clk = 0;
 logic foo = 1;
@@ -23,8 +26,8 @@ always @(posedge clk)
 // Problematically, in which order the second and third process
 // executes affect the values of the variables at each clock cycle.
 //
-// The type of assignment used (=) is called blocking assignments
-// in Verilog. The module f_nonblocking1 illustrates how so-called
-// nonblocking assignments (<=) solves this problem.
+// The module j_nonblocking4 illustrates how using so-called
+// nonblocking assignments (<=) instead of so-called blocking 
+// assignments (=), as above, solves this problem.
 
 endmodule

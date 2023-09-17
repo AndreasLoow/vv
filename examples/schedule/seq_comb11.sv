@@ -1,4 +1,4 @@
-module seq_comb9;
+module seq_comb11;
 
 // More interleavings between procedural processes
 // and continuous assignments. Seems that all tested

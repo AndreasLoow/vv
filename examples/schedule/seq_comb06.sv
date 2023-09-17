@@ -1,4 +1,4 @@
-module seq_comb6;
+module seq_comb06;
 
 /*
 

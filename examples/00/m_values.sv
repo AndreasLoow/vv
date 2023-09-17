@@ -1,6 +1,6 @@
-module l_values;
+module m_values;
 
-// Currently, only bit values are supported,
+// Currently, only bit values are supported in VV,
 // i.e., no arrays/vectors yet.
 
 // This is because, when building this simulator,

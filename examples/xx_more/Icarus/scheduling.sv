@@ -26,6 +26,6 @@ module scheduling;
 
 // The above boils down to if procedural and continuous 
 // processes can be interleaved. Some simulators allow this,
-// others do not, see schedule/seq_comb1.sv.
+// others do not, see schedule/seq_comb01.sv.
 
 endmodule
