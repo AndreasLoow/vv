@@ -37,22 +37,23 @@ code, pre {
  margin-top:0;
 }
 
-#nba-checkbox {
- float:right;
-}
-
 .comment {
  color:grey;
 }
 
-ol li {
+ol {
  list-style-position:inside;
+ padding-left:0;
 }
 
-.active {
+.active, .active-span {
  color:blue;
 }
 
-.active:hover {
+.active:hover, .active-span:hover span {
  cursor:pointer;
+}
+
+.multistep {
+ margin-left:0.25em;
 }
