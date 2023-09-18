@@ -9,7 +9,7 @@ module k_continuous;
 // E.g., the net "a" below has two drivers,
 // and the so-called resolution function for
 // wire nets resolves the two values to 1
-// (whereas for variables, the last write 
+// (whereas for variables, the last write
 // decides its values):
 
 wire a;

@@ -1,6 +1,6 @@
 module seq_comb02;
 
-// Synopsys VCS seems to optimise away/interleaved 
+// Synopsys VCS seems to optimise away/interleaved
 // some always blocks that are sufficiently similar
 // to just an assignment where the rhs of the assignment
 // is just a variable, e.g., running the following

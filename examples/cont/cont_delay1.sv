@@ -1,7 +1,7 @@
 module cont_delay1;
 
 // Variables and nets have very little in common.
-// E.g., the evaluation models of delays are 
+// E.g., the evaluation models of delays are
 // completely different.
 
 // One simple difference is that nets can have

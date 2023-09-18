@@ -1,6 +1,6 @@
 module fig7_net_assignment;
 
-// Meredith et al. say that this module raises 
+// Meredith et al. say that this module raises
 // the following question:
 //
 // "[...] We believe that this is an interesting area
@@ -29,12 +29,12 @@ always @(posedge x)
 // However, they also state:
 //
 // "One may make the argument that the always block
-// can fail to begin (and thus become delayed) before 
+// can fail to begin (and thus become delayed) before
 // the update to x."
 //
 // This is exactly my reading of the standard.
 // I.e., the above code genuinely contains a race.
-// The way to avoid races like this is to use 
+// The way to avoid races like this is to use
 // nonblocking assignments for communication between
 // blocks.
 //

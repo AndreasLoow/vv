@@ -1,6 +1,6 @@
 module cont_tri;
 
-// Simple example of tristate logic   
+// Simple example of tristate logic
 
 wire a;
 logic cond;

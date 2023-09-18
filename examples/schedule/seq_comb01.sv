@@ -1,7 +1,7 @@
 module seq_comb01;
 
 // In these seq_comb* modules we discuss some examples of
-// interleavings of procedural processes, continuous 
+// interleavings of procedural processes, continuous
 // assignments, and gates.
 
 // As discussed in the VV paper, arbitrary interleavings

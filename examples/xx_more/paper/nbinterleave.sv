@@ -9,5 +9,5 @@ end
 
 always @(*)
  $display("a = %b", a);
-   
+
 endmodule

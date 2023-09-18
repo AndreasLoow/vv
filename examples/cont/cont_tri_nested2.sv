@@ -1,5 +1,5 @@
 module cont_tri_nested2;
-   
+
 // Just another test for the parser
 
 wire a, b, c, d, e, f;

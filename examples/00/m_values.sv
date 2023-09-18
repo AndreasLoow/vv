@@ -14,7 +14,7 @@ module m_values;
 
 // For convenience, for now, "0" and "1" are
 // parsed as bit values rather than "at least"
-// 32-bit integers as the standard says they 
+// 32-bit integers as the standard says they
 // should (p. 73).
 
 endmodule

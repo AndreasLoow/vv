@@ -1,9 +1,9 @@
 module continterleave;
 
 logic a;
-   
+
 wire b;
-   
+
 assign b = a;
 
 initial begin

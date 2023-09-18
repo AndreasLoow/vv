@@ -9,7 +9,7 @@ assign #5 out = in1 && in2;
 
 initial begin
  $monitor("Time = %d out = %b in1=%b in2=%b",
-	  $time, out, in1, in2);
+          $time, out, in1, in2);
  // MOD: dumpfile not needed
  // $dumpfile("ex4_2.dmp");
  // $dumpvars;

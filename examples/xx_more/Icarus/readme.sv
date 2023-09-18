@@ -1,6 +1,6 @@
 module readme;
 
-// The modules in this directory are based on the some of the 
+// The modules in this directory are based on the some of the
 // issues with the Verilog standard raised in
 // Documentation/developer/guide/misc/ieee1364-notes.rst
 // from the Icarus Verilog simulator: https://github.com/steve/iverilog.

@@ -1,6 +1,6 @@
 module always_star2;
 
-logic a, b;  
+logic a, b;
 
 initial b <= 1;
 

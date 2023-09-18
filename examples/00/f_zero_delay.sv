@@ -1,7 +1,7 @@
 module f_zero_delay;
 
 logic a;
- 
+
 // Zero-delayed events are scheduled in the inactive region.
 // Such delays can be used for process coordination, e.g.,
 // the below ensures that "a" will be 0 at the end of simulation

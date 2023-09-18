@@ -27,7 +27,7 @@ always @(posedge clk)
 // executes affect the values of the variables at each clock cycle.
 //
 // The module j_nonblocking4 illustrates how using so-called
-// nonblocking assignments (<=) instead of so-called blocking 
+// nonblocking assignments (<=) instead of so-called blocking
 // assignments (=), as above, solves this problem.
 
 endmodule

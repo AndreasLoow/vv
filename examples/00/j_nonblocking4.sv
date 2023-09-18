@@ -10,7 +10,7 @@ always #1 clk = ~clk;
 always @(posedge clk)
  foo <= foo + 1;
 
-// Similarly, nonblocking instead of blocking assignment 
+// Similarly, nonblocking instead of blocking assignment
 always @(posedge clk)
  bar <= foo;
 

@@ -1,5 +1,5 @@
 module pipen3;
-   
+
 // See pipeb3
 
 // This is a good implementation

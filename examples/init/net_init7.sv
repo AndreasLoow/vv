@@ -1,7 +1,7 @@
 module net_init7;
 
 // Another init-related delay test
-  
+
 wire a;
 
 assign #5 a = 0;

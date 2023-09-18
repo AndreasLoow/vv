@@ -1,7 +1,7 @@
 module always_star1;
 
 // Examples from the standard, p. 219;
-// illustrates that @* is preprocessed away correctly 
+// illustrates that @* is preprocessed away correctly
 
 logic a, b, c, d, i, x, y, tmp1, tmp2, kid;
 
@@ -17,13 +17,13 @@ end
 
 // Example 3:
 // equivalent to @(b)
-always @* begin 
+always @* begin
  @(i) kid = b; // i is not added to @*
 end
-   
+
 // Example 4:
 // equivalent to @(a or b or c or d)
-always @* begin 
+always @* begin
  x = a ^ b;
  // equivalent to @(c or d)
  @* x = c ^ d;

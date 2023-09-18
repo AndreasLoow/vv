@@ -12,7 +12,7 @@ module always_latch_same_as_always_comb;
 // Example from p. 208
 
 logic ck = 1, q, d = 0;
-   
+
 always_latch
  if (ck)
   q <= d;

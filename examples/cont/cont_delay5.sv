@@ -2,9 +2,9 @@ module cont_delay5;
 
 // Test for whether transitions are relative to
 // driver value or net value.
-// 
+//
 // The alternative that makes the most sense is
-// relative to driver value, which is what 
+// relative to driver value, which is what
 // simulators seems to do -- VV takes this approach
 // as well.
 

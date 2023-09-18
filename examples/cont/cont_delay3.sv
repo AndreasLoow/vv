@@ -8,5 +8,5 @@ wire a;
 // (transition to 1, transition to 0, transition to high-impedance)
 
 assign #(1,1,0) a = 1;
-  
+
 endmodule

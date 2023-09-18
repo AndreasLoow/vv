@@ -6,7 +6,7 @@ module monitor1;
 // the output is the same.
 
 logic a;
-   
+
 initial $monitor("a = %b at time %d", a, $time);
 
 initial begin

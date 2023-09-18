@@ -8,7 +8,7 @@ always @(posedge (a == b)) $display("RUN");
 
 // See exps3 and exps4 for variants;
 // different simulators give different results
-// for different variants 
+// for different variants
 
 initial a = 1;
 

@@ -14,13 +14,13 @@ module var_init1;
 logic a = 0;
 
 initial $display("a = %b", a);
-   
-// In Verilog before SystemVerilog, the above 
+
+// In Verilog before SystemVerilog, the above
 // had the following semantics
 // (with "a" renamed to "b"):
 
 logic b;
-   
+
 initial b = 0;
 
 initial $display("b = %b", b);

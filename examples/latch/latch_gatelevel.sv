@@ -32,6 +32,6 @@ end
 
 initial
  $monitor("S = %b, R = %b, Q = %b, Qbar = %b",
-	  S, R, Q, Qbar);
+          S, R, Q, Qbar);
 
 endmodule

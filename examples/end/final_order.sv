@@ -7,7 +7,7 @@ logic a;
 // order. Therefore, in VV, "a" will always be 1 at the end of simulation.
 
 // Note that the standard also says that all final blocks should be
-// executed by the same process. In VV, however, we assign 
+// executed by the same process. In VV, however, we assign
 // one process per block since this allows us to re-use
 // the simulation interface for stepping processes.
 

@@ -5,7 +5,7 @@ module empty_delay2;
 logic a;
 
 initial #1 @(posedge a);
-   
+
 initial a = 1;
 
 endmodule

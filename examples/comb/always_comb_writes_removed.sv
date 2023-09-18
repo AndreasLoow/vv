@@ -1,7 +1,7 @@
 module always_comb_writes_removed;
 
 // variables written to be always_comb are removed
-// from sensitivity list 
+// from sensitivity list
 
 logic a, b, c, d;
 

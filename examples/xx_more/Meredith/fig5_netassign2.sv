@@ -14,7 +14,7 @@ logic w;
 
 reg r;
 
-// Modified: the continuous assignment is 
+// Modified: the continuous assignment is
 // replaced by a combinational always block
 
 //assign w = r;
@@ -27,7 +27,7 @@ end
 
 // In one of Meredith et al.'s reading of the standard,
 // the fig5_netassign1 module (called just netassign in
-// their paper), should have the same semantics as the 
+// their paper), should have the same semantics as the
 // above modified code; i.e., the semantics of continuous
 // assignments is given by replacing all such assignments
 // with analogue combinational always blocks.
@@ -40,17 +40,17 @@ end
 // code has strange behaviour in their semantics is
 // because of (what seems to be) a contradiction in the
 // standard. See the MEMOCODE'22 paper, by me, called
-// "A small, but important, concurrency problem in 
+// "A small, but important, concurrency problem in
 // Verilog's semantics?" for a discussion on this.
-// In short, in the paper I suggest that processes 
+// In short, in the paper I suggest that processes
 // cannot be interleaved arbitrarily, as suggested
 // by the standard. Instead, when awaken, a process
 // must execute, uninterrupted, until it blocks.
 
-// Without arbitrary interleavings, the above code 
+// Without arbitrary interleavings, the above code
 // executes without problems.
-// 
-// VV implements this restricted interleaving 
+//
+// VV implements this restricted interleaving
 // semantics and the module hence functions
 // sensibly in VV (i.e., w = 1 in all reachable
 // end states).

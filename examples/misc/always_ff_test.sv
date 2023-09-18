@@ -2,7 +2,7 @@ module always_ff_test;
 
 logic clk, a, b;
 
-// An always_ff block must have one and only 
+// An always_ff block must have one and only
 // one event control
 always_ff @(posedge clk)
  a <= a;

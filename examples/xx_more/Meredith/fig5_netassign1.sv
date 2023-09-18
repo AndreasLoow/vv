@@ -27,7 +27,7 @@ end
 // having zero delay.)
 
 // Meredith et al., however, do not refer to Sec 10.3.3.
-// Instead, they claim that the standard does not 
+// Instead, they claim that the standard does not
 // address situations like the above properly and
 // they instead refer to a paper by Mike Gordon
 // that, in turn, introduces the descheduling semantics

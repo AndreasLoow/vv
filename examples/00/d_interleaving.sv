@@ -23,7 +23,7 @@ end
 
 initial $display("a = %b", a);
 
-// Here we also for the first time can see the 
+// Here we also for the first time can see the
 // difference between clicking a blue event and
 // the blue event's fast-forward button. If we
 // click the blue event process 1, the simulation

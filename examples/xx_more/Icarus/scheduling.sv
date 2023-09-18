@@ -24,7 +24,7 @@ module scheduling;
 // The question is: does the semantics of Verilog allow the
 // FAILED message to ever be displayed?
 
-// The above boils down to if procedural and continuous 
+// The above boils down to if procedural and continuous
 // processes can be interleaved. Some simulators allow this,
 // others do not, see schedule/seq_comb01.sv.
 

@@ -4,7 +4,7 @@ module double_wait_nonblocking;
 // because NBA events do not mix with
 // other events in the active region
 // nonblocking assignments are not more
-// nondeterministic/allow for more 
+// nondeterministic/allow for more
 // interleavings than blocking assignments.
 
 logic a;

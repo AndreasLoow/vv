@@ -5,7 +5,7 @@ module var_init2;
 
 logic a = 1;
 logic b = a;
-   
+
 // Variables must be declared before use:
 //
 // See "6.21 Scope and lifetime" (p. 126):

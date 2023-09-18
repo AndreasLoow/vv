@@ -41,14 +41,14 @@ endmodule
 
 // First, see that the variable "a" has value x in
 // the environment. Now, clicking the blue event
-// will progress the simulation by running the 
+// will progress the simulation by running the
 // initial process of the module. After clicking the
 // event, the variable "a" now has value 0 in the
 // environment since the assignment in the process
 // has now been executed.
 
 // (Clicking the fast-forward arrow right of the blue
-// event will run the process until it blocks -- we 
+// event will run the process until it blocks -- we
 // will see the difference between single-stepping
 // and multi-stepping a process in other modules in
 // this directory.)
