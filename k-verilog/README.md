@@ -7,6 +7,7 @@ The following modules are available in this directory:
 * [`noxvalues.maude`](noxvalues.maude) -- illustrates lack of support for X values, variables are initialised to 0 instead of X
 * [`nondetblocking.maude`](nondetblocking.maude) -- illustrates that preemptive-threading-semantics for processes results in "too many" interleavnings; the module can print either "1", or "2", or "1" followed by "2"
 * [`nondetnonblocking.maude`](nondetnonblocking.maude) -- illustrates that allowing nonblocking-assignments events to mix with other events results in "too many" interleavings; the module can print either "1", or "2", or "1" followed by "2"
+* [`inactive.maude`](inactive.maude) -- illustrates mixing active and inactive events; the module can print either "1", or "2", "1" followed by "2", or "2" followed by "1"
 * [`interleavings.maude`](interleavings.maude) -- variant of `../examples/schedule/seq_cont6.sv`, further illstration of interleavings, now between procedural processes and continuous assignments instead of two procedural processes as above
 
 To run, e.g., `noxvalues.maude`, copy the file to the same directory as the Verilog semantics and simply do (on Mac):
