@@ -1,10 +1,10 @@
 module binterleave;
 
-reg a;
+reg[1:0] a;
 
 initial begin
- a = 0;
  a = 1;
+ a = 2;
 end
 
 always @(*)
