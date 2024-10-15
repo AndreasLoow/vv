@@ -93,8 +93,8 @@ type state =
    status: status,
    oldstatus: option<value>, // used to remember old Finished value during finals execution
    env: Belt.Map.String.t<value>,
-   cont_env: array<value>, // latest computed value for conts
    proc_env: array<proc_state>,
+   cont_env: array<value>, // latest computed value for conts
    queue: array<(int, time_slot)>,
    monitor: option<(string, array<exp_or_time>, option<array<value_or_time>>)>, // this represents the "postponed" region
    output: string,
@@ -795,15 +795,15 @@ let build_state = (m : vmodule) => {
    status: Running(None),
    oldstatus: None,
    env: env,
+   // ASSUMPTION: Always processes start in running state,
+   //             they have not reached the first blocking/control
+   //             statement yet.
+   proc_env: Belt.Array.map(m.procs, build_proc_state),
    // ASSUMPTION: Based on what simulators seem to do, this should be X,
    //             but I haven't found anything in the standard saying this.
    //             The standard says that unconnected nets should be Z --
    //             it is unclear what to do here...
    cont_env: Belt.Array.map(m.conts, _ => ValBit(BitX)),
-   // ASSUMPTION: Always processes start in running state,
-   //             they have not reached the first blocking/control
-   //             statement yet.
-   proc_env: Belt.Array.map(m.procs, build_proc_state),
    queue: [(0, {...empty_time_slot, active: proc_es})],
    monitor: None,
    output: "",
