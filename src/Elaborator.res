@@ -82,10 +82,12 @@ let check_timing_control = (s, tc) =>
  | TMStar => ()
 }
 
-let check_exp_or_time = (s, e) =>
- switch e {
- | ETExp(e) => check_exp(s, e)
- | ETTime => ()
+let check_out_arg = (s, oa) =>
+ switch oa {
+ | OAExp(e) => check_exp(s, e)
+ | OATime => () 
+ | OAStr(_) => ()
+ | OAEmpty => ()
 }
 
 let add_var = (s, (name, e)) =>
@@ -138,11 +140,11 @@ let rec check_stmt = (env_prev, new_style, s, stm) =>
     // Var now claimed
     let env = Belt.Map.String.set(s.env, var, TVar(new_style ? VarNewClaimed : VarClaimed))
     {...s, env: env}
- | SStmtDisplay(_, es) =>
-    Js.Array.forEach(check_exp_or_time(s), es)
+ | SStmtDisplay(es) =>
+    Js.Array.forEach(check_out_arg(s), es)
     s
- | SStmtMonitor(_, es) =>
-    Js.Array.forEach(check_exp_or_time(s), es)
+ | SStmtMonitor(es) =>
+    Js.Array.forEach(check_out_arg(s), es)
     s
  | SStmtFinish(e) =>
     check_exp(s, e)
@@ -166,10 +168,12 @@ let rec reads_star_exp = (e) =>
  | ExpCond(e1, e2, e3) => Utils.unions([reads_star_exp(e1), reads_star_exp(e2), reads_star_exp(e3)])
 }
 
-let reads_star_exp_or_time = (e) =>
- switch e {
- | ETExp(e) => reads_star_exp(e)
- | ETTime => Belt.Set.String.empty
+let reads_star_out_arg = (oa) =>
+ switch oa {
+ | OAExp(e) => reads_star_exp(e)
+ | OATime => Belt.Set.String.empty
+ | OAStr(_) => Belt.Set.String.empty
+ | OAEmpty => Belt.Set.String.empty
 }
 
 let rec reads_star = (s) =>
@@ -179,8 +183,8 @@ let rec reads_star = (s) =>
  | SStmtWait(_, None) => Belt.Set.String.empty
  | SStmtWait(_, Some(s)) => reads_star(s)
  | SStmtAssn(_, _, _, e) => reads_star_exp(e)
- | SStmtDisplay(_, es) => Utils.unions(Js.Array.map(reads_star_exp_or_time, es))
- | SStmtMonitor(_, es) => Utils.unions(Js.Array.map(reads_star_exp_or_time, es))
+ | SStmtDisplay(es) => Utils.unions(Js.Array.map(reads_star_out_arg, es))
+ | SStmtMonitor(es) => Utils.unions(Js.Array.map(reads_star_out_arg, es))
  | SStmtFinish(e) => reads_star_exp(e)
  | SStmtIf(e, s) => Belt.Set.String.union(reads_star_exp(e), reads_star(s))
  | SStmtIfElse(e, s1, s2) => Utils.unions([reads_star_exp(e), reads_star(s1), reads_star(s2)])
@@ -194,8 +198,8 @@ let rec writes_star = (s) =>
  | SStmtWait(_, None) => Belt.Set.String.empty
  | SStmtWait(_, Some(s)) => writes_star(s)
  | SStmtAssn(_, var, _, _) => Belt.Set.String.fromArray([var])
- | SStmtDisplay(_, _) => Belt.Set.String.empty
- | SStmtMonitor(_, _) => Belt.Set.String.empty
+ | SStmtDisplay(_) => Belt.Set.String.empty
+ | SStmtMonitor(_) => Belt.Set.String.empty
  | SStmtFinish(_) => Belt.Set.String.empty
  | SStmtIf(_, s) => writes_star(s)
  | SStmtIfElse(_, s1, s2) => Belt.Set.String.union(writes_star(s1), writes_star(s2))
@@ -246,8 +250,8 @@ let rec num_ec = (pt, s) =>
  | SStmtWait(_, _) => raise(ElaboratorError("Wait statement not allowed inside " ++ Pp.proc_type_str(pt)))
  | SStmtAssn(_, _, Some(_), _) => raise(ElaboratorError("Delayed assignments not allowed inside " ++ Pp.proc_type_str(pt)))
  | SStmtAssn(_, _, _, _) => 0
- | SStmtDisplay(_, _) => 0
- | SStmtMonitor(_, _) => 0
+ | SStmtDisplay(_) => 0
+ | SStmtMonitor(_) => 0
  | SStmtFinish(_) => 0
  | SStmtIf(_, s) => num_ec(pt, s)
  | SStmtIfElse(_, s1, s2) => num_ec(pt, s1) + num_ec(pt, s2)

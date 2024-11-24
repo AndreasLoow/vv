@@ -38,6 +38,77 @@ let compile_cont = (lhs, d, rhs) => {
  { lhs: lhs, delay: d, rhs: rhs }
 }
 
+let compile_out_arg_format_b = (ao) =>
+ switch ao {
+ | OAExp(e) => ETExp(e)
+ | _ => raise(CompileError("Invalid format (%b)"))
+}
+
+let compile_out_arg_format_d = (ao) =>
+ switch ao {
+ | OATime => ETTime
+ | _ => raise(CompileError("Invalid format (%d)"))
+}
+
+let compile_out_arg = (args : array<out_arg>) : (string, array<exp_or_time>) => {
+ let i = ref(0)
+ let strs = []
+ let outargs = []
+
+ while i.contents < Belt.Array.length(args) {
+  switch Belt.Array.getExn(args, i.contents) {
+  | OAExp(e) => {
+     Belt.Array.push(strs, "%b");
+     Belt.Array.push(outargs, ETExp(e));
+     i := i.contents + 1
+  }
+  | OATime => {
+     Belt.Array.push(strs, "%d");
+     Belt.Array.push(outargs, ETTime);
+     i := i.contents + 1
+  }
+  | OAStr(str) => {
+     Belt.Array.push(strs, str);
+     i := i.contents + 1
+
+     let j = ref(0)
+     while j.contents < Js.String.length(str) {
+      if Js.String.get(str, j.contents) == "%" {
+       // If j is increased in the beginning it seems that the code is miscompiled?
+
+       // returns undefined on OoB
+       let c = Js.String.get(str, j.contents + 1)
+
+       if j.contents + 1 >= Js.String.length(str) || i.contents >= Js.Array.length(args) {
+        raise(CompileError("Invalid format reference"))
+       } else if c == "b" {
+        let ao = Belt.Array.getExn(args, i.contents)
+        i := i.contents + 1
+        Belt.Array.push(outargs, compile_out_arg_format_b(ao));
+       } else if c == "d" {
+        let ao = Belt.Array.getExn(args, i.contents)
+        i := i.contents + 1
+        Belt.Array.push(outargs, compile_out_arg_format_d(ao));
+       } else {
+        raise(CompileError("unsupported format"))
+       }
+
+       j := j.contents + 2
+      } else {
+       j := j.contents + 1
+      }
+    }
+  }
+  | OAEmpty => {
+     Belt.Array.push(strs, " ");
+     i := i.contents + 1
+  }
+  }
+ }
+
+ (Js.Array.joinWith("", strs), outargs)
+}
+
 let rec compile_stmt = (s) => {
  switch s {
  | SStmtTimingControl(tc, None) => [StmtTimingControl(tc)]
@@ -48,8 +119,14 @@ let rec compile_stmt = (s) => {
                                              compile_stmt(s))
  | SStmtAssn(assn_type, var, d, exp) => [StmtAssn(assn_type, var, d, exp)]
 
- | SStmtDisplay(str, es) => [StmtDisplay(str, es)]
- | SStmtMonitor(str, es) => [StmtMonitor(str, es)]
+ | SStmtDisplay(es) => {
+    let (str, es) = compile_out_arg(es)
+    [StmtDisplay(str, es)]
+   }
+ | SStmtMonitor(es) => {
+    let (str, es) = compile_out_arg(es)
+    [StmtMonitor(str, es)]
+   }
  | SStmtFinish(e) => [StmtFinish(e)]
 
  | SStmtIf(e, s) =>

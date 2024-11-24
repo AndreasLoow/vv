@@ -52,10 +52,6 @@ let mk_ExpCond = (e1, e2, e3) => ExpCond(e1, e2, e3)
 
 type exp_or_time = ETExp(exp) | ETTime
 
-// JS API
-let mk_ETExp = (e) => ETExp(e)
-let mk_ETTime = ETTime
-
 // delays: rise (= 1), fall (= 2), and turn-off delays (= 3)
 type delay = Delay0 | Delay1(int) | Delay2(int, int) | Delay3(int, int, int)
 

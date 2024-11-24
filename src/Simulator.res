@@ -56,7 +56,7 @@ let make = () => {
      }
    | ParseFail(err) =>
      //Js.log(err)
-     Utils.alert("Could not parse Verilog code: " ++ err)
+     Utils.alert("Could not parse the Verilog code! The parse error reporting from Ohm (i.e., the parser generator VV uses) is not very good -- so if you want to figure out what's wrong, your best option is probably to try to parse the code in a Verilog simulator. With that said, the following is the parse error message from Ohm:\n\n" ++ err)
    }
   }
 

@@ -48,11 +48,9 @@ const verilogGrammar = ohm.grammar(String.raw`
          | "if" "(" Exp ")" Stmt "else" Stmt -- if_else
          | "if" "(" Exp ")" Stmt -- if
 
-         | "$display" "(" string "," NonemptyListOf<ExpOrTime, ","> ")" ";" -- display
-         | "$display" "(" string ")" ";" -- display_no_args
+         | "$display" "(" ListOf<OutArg, ","> ")" ";" -- display
 
-         | "$monitor" "(" string "," NonemptyListOf<ExpOrTime, ","> ")" ";" -- monitor
-         | "$monitor" "(" string ")" ";" -- monitor_no_args
+         | "$monitor" "(" ListOf<OutArg, ","> ")" ";" -- monitor
 
          | "$finish" ";" -- finish
          | "$finish" "(" Exp ")" ";" -- finish_arg
@@ -116,8 +114,10 @@ const verilogGrammar = ohm.grammar(String.raw`
          | "1" -- one
          | "(" Exp ")" -- paren
 
-    ExpOrTime = Exp -- exp
-              | "$time" -- time
+    OutArg = Exp -- exp
+           | "$time" -- time
+           | string -- string
+           | "" -- empty
 
     number = digit+
     bit = "1'b" ("0" | "1" | "x" | "X" | "z" | "Z")
@@ -176,11 +176,9 @@ t.addOperation('translate', {
     Stmt_if(_1, _2, ec, _3, st) { return AstParse.mk_SStmtIf(ec.translate(), st.translate()); },
     Stmt_if_else(_1, _2, ec, _3, st, _4, sf) { return AstParse.mk_SStmtIfElse(ec.translate(), st.translate(), sf.translate()); },
 
-    Stmt_display(_1, _2, str, _3, es, _4, _5) { return AstParse.mk_SStmtDisplay(str.translate(), es.asIteration().children.map(e => e.translate())); },
-    Stmt_display_no_args(_1, _2, str, _3, _4) { return AstParse.mk_SStmtDisplay(str.translate(), []); },
+    Stmt_display(_1, _2, es, _3, _4) { return AstParse.mk_SStmtDisplay(es.asIteration().children.map(e => e.translate())); },
 
-    Stmt_monitor(_1, _2, str, _3, es, _4, _5) { return AstParse.mk_SStmtMonitor(str.translate(), es.asIteration().children.map(e => e.translate())); },
-    Stmt_monitor_no_args(_1, _2, str, _3, _4) { return AstParse.mk_SStmtMonitor(str.translate(), []); },
+    Stmt_monitor(_1, _2, es, _3, _4) { return AstParse.mk_SStmtMonitor(es.asIteration().children.map(e => e.translate())); },
 
     Stmt_finish(_1, _2) { return AstParse.mk_SStmtFinish(Ast.mk_ExpVal(Ast.mk_ValBit(Bit.mk_BitTrue))); },
     Stmt_finish_arg(_1, _2, e, _3, _4) { return AstParse.mk_SStmtFinish(e.translate()); },
@@ -242,8 +240,10 @@ t.addOperation('translate', {
     Exp9_one(_) { return Ast.mk_ExpVal(Ast.mk_ValBit(Bit.mk_BitTrue)); },
     Exp9_paren(_1, e1, _2) { return e1.translate(); },
 
-    ExpOrTime_exp(e) { return Ast.mk_ETExp(e.translate()); },
-    ExpOrTime_time(_) { return Ast.mk_ETTime; },
+    OutArg_exp(e) { return AstParse.mk_OAExp(e.translate()); },
+    OutArg_time(_) { return AstParse.mk_OATime; },
+    OutArg_string(str) { return AstParse.mk_OAStr(str.translate()); },
+    OutArg_empty(_) { return AstParse.mk_OAEmpty; },
 
     number(_) {
     	return parseInt(this.sourceString, 10);

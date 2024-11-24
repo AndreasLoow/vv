@@ -2,12 +2,20 @@
 
 open Ast
 
+type out_arg = OAExp(exp) | OATime | OAStr(string) | OAEmpty
+
+// JS API
+let mk_OAExp = (e) => OAExp(e)
+let mk_OATime = OATime
+let mk_OAStr = (s) => OAStr(s)
+let mk_OAEmpty = OAEmpty
+
 type rec stmt_structured =
  | SStmtTimingControl(timing_control, option<stmt_structured>)
  | SStmtWait(exp, option<stmt_structured>)
  | SStmtAssn(assn_type, var, option<int>, exp)
- | SStmtDisplay(string, array<exp_or_time>)
- | SStmtMonitor(string, array<exp_or_time>)
+ | SStmtDisplay(array<out_arg>)
+ | SStmtMonitor(array<out_arg>)
  | SStmtFinish(exp)
  | SStmtIf(exp, stmt_structured)
  | SStmtIfElse(exp, stmt_structured, stmt_structured)
@@ -17,8 +25,8 @@ type rec stmt_structured =
 let mk_SStmtTimingControl = (tc, opts) => SStmtTimingControl(tc, opts)
 let mk_SStmtWait = (e, opts) => SStmtWait(e, opts)
 let mk_SStmtAssn = (at, v, d, e) => SStmtAssn(at, v, d, e)
-let mk_SStmtDisplay = (str, es) => SStmtDisplay(str, es)
-let mk_SStmtMonitor = (str, es) => SStmtMonitor(str, es)
+let mk_SStmtDisplay = (es) => SStmtDisplay(es)
+let mk_SStmtMonitor = (es) => SStmtMonitor(es)
 let mk_SStmtFinish = (e) => SStmtFinish(e)
 let mk_SStmtIf = (ec, st) => SStmtIf(ec, st)
 let mk_SStmtIfElse = (ec, st, sf) => SStmtIfElse(ec, st, sf)
