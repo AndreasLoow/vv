@@ -1,6 +1,6 @@
 # Verilog Visualiser (VV)
 
-VV is an interactive simulator for Verilog that visualises Verilog's simulation semantics, in particular, Verilog's stratified event queue, as described by the (System)Verilog standard. The standard is [available for free online](https://doi.org/10.1109/IEEESTD.2018.8299595).
+VV is an interactive simulator for Verilog that visualises Verilog's simulation semantics, in particular, Verilog's stratified event queue, as described by the (System)Verilog standard. The standard is [available for free online](https://doi.org/10.1109/IEEESTD.2024.10458102).
 
 A live demo of the tool is available at [andreasloow.github.io/vv](https://andreasloow.github.io/vv) (no installation needed). See the dropdown menu (top left) in the demo containing a collection of (commented) Verilog modules illustrating various aspects of Verilog's semantics.
 
