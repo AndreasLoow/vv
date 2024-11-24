@@ -12,11 +12,12 @@ VV is implemented in [ReScript](https://rescript-lang.org), an OCaml dialect of 
 
 When adding new example modules, run `examples/compile.hs` to generate an updated `src/Templates.res` file.
 
-Some of the following is sometimes useful to remember:
+Some of the following commands are sometimes useful to remember:
 
 ```sh
 npm i
-npm dev
+npm run res:build
+npm run dev
 ```
 
 The files for GitHub pages are in the branch "website".
