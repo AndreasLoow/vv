@@ -133,19 +133,19 @@ let val_bit_lift = (f, v) =>
 let val_bit_lift2 = (f, v1, v2) =>
  ValBit(val_bit_bind2(f, v1, v2))
 
-let val_not = val_bit_lift(bit_not)
-let val_and = val_bit_lift2(bit_and)
-let val_or = val_bit_lift2(bit_or)
-let val_xor = val_bit_lift2(bit_xor)
-let val_add = val_bit_lift2(bit_add)
-let val_eq = val_bit_lift2(bit_eq)
-let val_neq = val_bit_lift2(bit_neq)
-let val_case_eq = val_bit_lift2(bit_case_eq)
-let val_case_neq = val_bit_lift2(bit_case_neq)
-let val_cond = val_bit_lift2(bit_cond)
-let val_is_true = val_bit_bind(bit_is_true)
-let val_is_false = val_bit_bind(bit_is_false)
-let val_edge = val_bit_bind2(bit_edge)
+let val_not = val_bit_lift(bit_not, ...)
+let val_and = val_bit_lift2(bit_and, ...)
+let val_or = val_bit_lift2(bit_or, ...)
+let val_xor = val_bit_lift2(bit_xor, ...)
+let val_add = val_bit_lift2(bit_add, ...)
+let val_eq = val_bit_lift2(bit_eq, ...)
+let val_neq = val_bit_lift2(bit_neq, ...)
+let val_case_eq = val_bit_lift2(bit_case_eq, ...)
+let val_case_neq = val_bit_lift2(bit_case_neq, ...)
+let val_cond = val_bit_lift2(bit_cond, ...)
+let val_is_true = val_bit_bind(bit_is_true, ...)
+let val_is_false = val_bit_bind(bit_is_false, ...)
+let val_edge = val_bit_bind2(bit_edge, ...)
 
 // REF: 12.4
 // If the cond_predicate expression evaluates to true (that is, has a nonzero known value), the first statement
@@ -538,7 +538,7 @@ let display_eq = (v1, v2) =>
  }
 
 let run_display = (s, str, es, prev) => {
- let vs = Js.Array.map(run_exp_or_time(s.time, s.env), es)
+ let vs = Js.Array.map(run_exp_or_time(s.time, s.env, ...), es)
  let same = switch prev {
  | None => false
  | Some(prev) => Belt.Array.every2(vs, prev, display_eq)
@@ -822,7 +822,7 @@ let build_initial_cont_update_event = (s, p, i) => {
 let run_init = (s:state) => {
   // REF: 4.9.1 Continuous assignment
   // REF: A continuous assignment process is also evaluated at time zero in order to propagate constant values.
-  let es = Js.Array.mapi(build_initial_cont_update_event(s), s.vmodule.conts)
+  let es = Js.Array.mapi(build_initial_cont_update_event(s, ...), s.vmodule.conts)
 
   // ASSUMPTION: Unclear if values in es should propagate to env directly or be events?
   //             Probably events as implemented now?
@@ -891,7 +891,7 @@ let run_event = (mode:run_mode, s:state, ei:int) => {
             |> Js.Array.mapi((var, i) => (var, i))
             |> Js.Array.filter(((c, _)) => c.lhs == var)
             |> Js.Array.map(((_, i)) => Belt.Array.getExn(cont_env, i))
-            |> Utils.reduce0(val_bit_lift2(net_type_res(net.type_)))
+            |> Utils.reduce0(val_bit_lift2(net_type_res(net.type_), ...))
    let env = Belt.Map.String.set(s.env, var, newv)
    let oldenv = s.env
    let s = {...s, cont_env: cont_env, env: env}

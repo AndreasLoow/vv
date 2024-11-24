@@ -1,13 +1,8 @@
 {
-  "name": "vite-react-rescript-starter",
+  "name": "vv",
   "sources": [
     {
       "dir": "src",
-      "subdirs": true
-    },
-    {
-      "dir": "tests",
-      "type": "dev",
       "subdirs": true
     }
   ],
@@ -24,11 +19,7 @@
   },
   "bs-dependencies": [
     "@rescript/react",
-    "@rescript/core",
-    "rescript-webapi"
-  ],
-  "bs-dev-dependencies": [
-    "rescript-vitest"
+    "@rescript/core"
   ],
   "bsc-flags": [
     "-open RescriptCore"

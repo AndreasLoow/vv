@@ -88,9 +88,9 @@ let make = () => {
     Belt.Array.mapWithIndex(q.active, (i, e) =>
      <li key={ event_key(e) }
          className={ className_wrapper_span(event_active(state, qi, i)) }>
-       <span onClick={ handle_event(SingleStep, qi, i) }> { Pp.event_str(state.vmodule.conts, e) } </span>
+       <span onClick={ handle_event(SingleStep, qi, i, ...) }> { Pp.event_str(state.vmodule.conts, e) } </span>
        { if event_MultiStep(state, qi, e)
-        { <span className={"multistep"} onClick={ handle_event(MultiStep, qi, i) }> { React.string("⏩") } </span> }
+        { <span className={"multistep"} onClick={ handle_event(MultiStep, qi, i, ...) }> { React.string("⏩") } </span> }
        else
         { React.null } }
      </li>)
@@ -107,8 +107,8 @@ let make = () => {
     <b>{ React.string("Time: " ++ Belt.Int.toString(qi)) }</b>
     <ul>
       <li> { React.string("Active:") } <ul> { React.array(active_es) }</ul> </li>
-      <li onClick={ handle_inactive_done(qi) } className={ className_wrapper(inactive_done_active(state, qi)) }> { React.string("Inactive:") } <ul> { React.array(inactive_es) }</ul> </li>
-      <li onClick={ handle_nba_done(qi) } className={ className_wrapper(nba_done_active(state, qi)) }>
+      <li onClick={ handle_inactive_done(qi, ...) } className={ className_wrapper(inactive_done_active(state, qi)) }> { React.string("Inactive:") } <ul> { React.array(inactive_es) }</ul> </li>
+      <li onClick={ handle_nba_done(qi, ...) } className={ className_wrapper(nba_done_active(state, qi)) }>
        { React.string("NBA:") } <ul> { React.array(nba_es) }</ul>
       </li>
     </ul>

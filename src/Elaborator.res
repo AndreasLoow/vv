@@ -62,8 +62,8 @@ let rec check_exp = (s, e) =>
  | ExpVal(_) => ()
  | ExpVar(var) => check_decl(s, var)
  | ExpNot(e) => check_exp(s, e)
- | ExpOp2(e1, _, e2) => Js.Array.forEach(check_exp(s), [e1, e2])
- | ExpCond(e1, e2, e3) => Js.Array.forEach(check_exp(s), [e1, e2, e3])
+ | ExpOp2(e1, _, e2) => Js.Array.forEach(check_exp(s, ...), [e1, e2])
+ | ExpCond(e1, e2, e3) => Js.Array.forEach(check_exp(s, ...), [e1, e2, e3])
 }
 
 let rec check_event_expression = (s, ee) =>
@@ -72,7 +72,7 @@ let rec check_event_expression = (s, ee) =>
  | EENeg(e) => check_exp(s, e)
  | EEEdge(e) => check_exp(s, e)
  | EENever => ()
- | EEOr(ee1, ee2) => Js.Array.forEach(check_event_expression(s), [ee1, ee2])
+ | EEOr(ee1, ee2) => Js.Array.forEach(check_event_expression(s, ...), [ee1, ee2])
 }
 
 let check_timing_control = (s, tc) =>
@@ -94,7 +94,7 @@ let add_var = (s, (name, e)) =>
  if (Belt.Map.String.has(s.env, name)) {
   raise(ElaboratorError("Name collision: " ++ name))
  } else {
-  Utils.option_forEach(e, check_exp(s))
+  Utils.option_forEach(e, check_exp(s, ...))
   let env = Belt.Map.String.set(s.env, name, TVar(Belt.Option.isSome(e) ? VarInited : VarNothing))
   {...s, env: env}
 }
@@ -103,7 +103,7 @@ let add_net = (s, (name, e)) =>
  if (Belt.Map.String.has(s.env, name)) {
   raise(ElaboratorError("Name collision: " ++ name))
  } else {
-  Utils.option_forEach(e, check_exp(s))
+  Utils.option_forEach(e, check_exp(s, ...))
   let env = Belt.Map.String.set(s.env, name, TNet)
   {...s, env: env}
 }
@@ -141,10 +141,10 @@ let rec check_stmt = (env_prev, new_style, s, stm) =>
     let env = Belt.Map.String.set(s.env, var, TVar(new_style ? VarNewClaimed : VarClaimed))
     {...s, env: env}
  | SStmtDisplay(es) =>
-    Js.Array.forEach(check_out_arg(s), es)
+    Js.Array.forEach(check_out_arg(s, ...), es)
     s
  | SStmtMonitor(es) =>
-    Js.Array.forEach(check_out_arg(s), es)
+    Js.Array.forEach(check_out_arg(s, ...), es)
     s
  | SStmtFinish(e) =>
     check_exp(s, e)
@@ -154,9 +154,9 @@ let rec check_stmt = (env_prev, new_style, s, stm) =>
     check_stmt(env_prev, new_style, s, stm)
  | SStmtIfElse(e, stm1, stm2) =>
     check_exp(s, e)
-    Js.Array.reduce(check_stmt(env_prev, new_style), s, [stm1, stm2])
+    Js.Array.reduce(check_stmt(env_prev, new_style, ...), s, [stm1, stm2])
  | SSBlock(stms) =>
-    Js.Array.reduce(check_stmt(env_prev, new_style), s, stms)
+    Js.Array.reduce(check_stmt(env_prev, new_style, ...), s, stms)
 }
 
 let rec reads_star_exp = (e) =>
@@ -255,7 +255,7 @@ let rec num_ec = (pt, s) =>
  | SStmtFinish(_) => 0
  | SStmtIf(_, s) => num_ec(pt, s)
  | SStmtIfElse(_, s1, s2) => num_ec(pt, s1) + num_ec(pt, s2)
- | SSBlock(ss) => Utils.sum(Js.Array.map(num_ec(pt), ss))
+ | SSBlock(ss) => Utils.sum(Js.Array.map(num_ec(pt, ...), ss))
 }
 
 let validate_proc = (pt, s) =>

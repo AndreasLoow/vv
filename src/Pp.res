@@ -99,7 +99,7 @@ let stmt_str = (pc, lasti, s, i) => {
 }
 
 let stmts_str = (pc : int, ss : array<stmt>) => {
- Js.Array.mapi(stmt_str(pc, Js.Array.length(ss) - 1), ss)
+ Js.Array.mapi(stmt_str(pc, Js.Array.length(ss) - 1, ...), ss)
 }
 
 let cont_str = (c : cont) =>
@@ -182,8 +182,8 @@ let vmodule_str = (m, proc_env) => {
    [react_string_or_nothing(Js.Array.map(net_str, m.nets)),
     react_string_or_nothing(Js.Array.map(decl_str, m.vars)),
     react_string_or_nothing(Js.Array.map(cont_str, m.conts)),
-    Js.Array.mapi(proc_str(proc_env), m.procs),
-    Js.Array.mapi(proc_str(proc_env), m.finals)],
+    Js.Array.mapi(proc_str(proc_env, ...), m.procs),
+    Js.Array.mapi(proc_str(proc_env, ...), m.finals)],
    []))
   React.array(dummy_fragments(r))
 }

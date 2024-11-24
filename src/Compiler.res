@@ -150,7 +150,7 @@ let compile_top_level = (m, tl) => {
    let vars = Js.Array.map(compile_var, ds)
    {...m, vars: Js.Array2.concat(m.vars, vars)}
  | TLNets(nt, d, ds) =>
-   let (nets, conts) = Belt.Array.unzip(Js.Array.map(compile_net(nt, d), ds))
+   let (nets, conts) = Belt.Array.unzip(Js.Array.map(compile_net(nt, d, ...), ds))
    let conts = Js.Array.map(Belt.Option.getExn, Js.Array.filter(Belt.Option.isSome, conts))
    {...m, nets: Js.Array2.concat(m.nets, nets), conts: Js.Array2.concat(m.conts, conts)}
  | TLCont(lhs, d, rhs) =>
