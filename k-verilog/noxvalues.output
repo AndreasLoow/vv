@@ -1,7 +1,0 @@
-Solution 1 (state 2)
-states: 3  rewrites: 58 in 0ms cpu (0ms real) (257777 rewrites/second)
-I/O:I/O --> "0\n"
-"Final simulation time: 0"
-
-No more solutions.
-states: 3  rewrites: 58 in 0ms cpu (0ms real) (232000 rewrites/second)
