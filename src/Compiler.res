@@ -74,7 +74,9 @@ let compile_out_arg = (args : array<out_arg>) : (string, array<exp_or_time>) => 
      let j = ref(0)
      while j.contents < Js.String.length(str) {
       if Js.String.get(str, j.contents) == "%" {
-       // If j is increased in the beginning it seems that the code is miscompiled?
+       // Workaround: if j is increased in the beginning,
+       // then the resulting code is miscompiled. See
+       // https://github.com/rescript-lang/rescript/issues/7170.
 
        // returns undefined on OoB
        let c = Js.String.get(str, j.contents + 1)
