@@ -6,14 +6,15 @@ module g_nonblocking1;
 
 // Nonblocking assignments are given semantics
 // in terms of the NBA region of the Verilog event queue.
-// Notice that when the active region is empty and there
+// In short: when the active region is empty and there
 // are events in the NBA region, the NBA region becomes
 // blue and clicking the NBA region moves the NBA-region
 // events to the active region.
 
 // When moved to the active region, the NBA-region events are
 // grouped because they must be executed in the same order
-// they were added to the NBA region.
+// they were added to the NBA region (see the OOPSLA paper for
+// a more detailed discussion).
 
 logic a;
 

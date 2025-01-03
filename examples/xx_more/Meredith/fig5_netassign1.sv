@@ -17,7 +17,7 @@ end
 // the net can have multiple events scheduled at once
 // according to their reading of the standard.
 
-// In my reading of the standard, the standard discusses
+// In our reading of the standard, the standard discusses
 // this in Sec 10.3.3 "Continuous assignment delays".
 // The standard states that situations like the above
 // should be handled by "descheduling" previously

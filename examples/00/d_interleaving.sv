@@ -1,6 +1,6 @@
 module d_interleaving;
 
-// As discussed in the VV paper, the standard
+// As discussed in the associated OOPSLA paper, the standard
 // says that processes can be preempted at any point;
 // in other words, arbitrary interleavings are allowed.
 // This, as explained in the paper, can lead to

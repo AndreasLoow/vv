@@ -8,7 +8,7 @@ logic b = a;
 
 // Variables must be declared before use:
 //
-// See "6.21 Scope and lifetime" (p. 126):
+// See "6.21 Scope and lifetime" (p. 132):
 //
 // "A variable declaration shall precede any simple
 // reference (non-hierarchical) to that variable."
@@ -18,8 +18,8 @@ logic b = a;
 // logic a = b;
 // logic b = 1;
 
-// I have not found a clear reference in the standard,
-// but I assume variables are to be initialised in
+// We have not found a clear reference in the standard,
+// but we assume variables are to be initialised in
 // declaration order. (This is guaranteed by e.g. C++.)
 
 endmodule

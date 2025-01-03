@@ -6,8 +6,9 @@ module e_delay;
 
 logic a;
 
-// This will delay the assignment to "a", the process
-// will block for ten clock cycles and then continue
+// The following will delay the assignment to "a", the process
+// will block for ten clock cycles and then continue.
+
 initial #10 a = 0;
 
 // To run the simulation from start to finish:
@@ -15,6 +16,6 @@ initial #10 a = 0;
 // - first click the evaluation event of the process;
 // - then "simulation time" to progress to time slot 10;
 // - and then lastly click the evaluation event of the
-//   process again
+//   process again.
 
 endmodule

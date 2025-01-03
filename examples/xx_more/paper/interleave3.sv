@@ -1,4 +1,4 @@
-module nbinterleave;
+module interleave3;
 
 logic a;
 

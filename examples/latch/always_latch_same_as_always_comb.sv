@@ -9,7 +9,7 @@ module always_latch_same_as_always_comb;
 // a synthesis tool; nor does it check always_comb
 // blocks in this way.
 
-// Example from p. 208
+// Example from p. 223
 
 logic ck = 1, q, d = 0;
 

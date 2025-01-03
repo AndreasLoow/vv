@@ -1,10 +1,10 @@
-module k_continuous;
+module j_continuous;
 
-// VV also supports so-called continuous assignments
+// VV also supports continuous assignments
 
 // Continuous assignments follow a completely
 // different evaluation model than the types of
-// processes introduced this far in the tutorial do
+// processes introduced this far in the tutorial
 
 // E.g., the net "a" below has two drivers,
 // and the so-called resolution function for

@@ -1,4 +1,4 @@
-module l_monitor;
+module k_monitor;
 
 // Like the display task $display, $monitor is useful
 // for print-style debugging. We use it in various

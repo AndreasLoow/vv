@@ -1,6 +1,6 @@
 module net_init2;
 
-// Page 98 of the standard says:
+// Page 103 of the standard says:
 // "The default initialization value for a net
 // shall be the value z."
 //

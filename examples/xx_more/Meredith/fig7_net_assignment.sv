@@ -32,7 +32,7 @@ always @(posedge x)
 // can fail to begin (and thus become delayed) before
 // the update to x."
 //
-// This is exactly my reading of the standard.
+// This is exactly our reading of the standard.
 // I.e., the above code genuinely contains a race.
 // The way to avoid races like this is to use
 // nonblocking assignments for communication between

@@ -1,6 +1,6 @@
 module xif;
 
-// This will always print "Second branch", see p. 299
+// This will always print "Second branch", see p. 315
 
 initial
  if (1'bx)

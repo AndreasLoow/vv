@@ -1,6 +1,6 @@
 module net_init1;
 
-// Page 86 of the standard says:
+// Page 91 of the standard says:
 // "If no driver is connected to a net, its value
 // shall be high-impedance (z) [...]."
 

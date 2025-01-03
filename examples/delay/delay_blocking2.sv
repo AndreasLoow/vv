@@ -1,6 +1,6 @@
 module delay_blocking2;
 
-// Inspired by "Example 6" from p. 240
+// Inspired by "Example 6" from p. 255
 // of the Verilog standard
 
 logic a;

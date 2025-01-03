@@ -1,6 +1,6 @@
 module delay_nonblocking2;
 
-// "Example 6" from p. 240
+// "Example 6" from p. 255
 // of the Verilog standard
 
 logic a;

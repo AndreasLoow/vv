@@ -1,6 +1,6 @@
 module always_star1;
 
-// Examples from the standard, p. 219;
+// Examples from the standard, p. 234;
 // illustrates that @* is preprocessed away correctly
 
 logic a, b, c, d, i, x, y, tmp1, tmp2, kid;

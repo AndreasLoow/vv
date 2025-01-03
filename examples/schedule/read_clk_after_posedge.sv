@@ -9,8 +9,7 @@ always #1 clk <= ~clk;
 always @(posedge clk) $display("%b", clk);
 
 //
-// Alternative, see the discussion in seq_comb01.sv
-// on procedural processes and continuous assignments:
+// Alternative:
 //
 // wire clk2;
 // assign clk2 = clk;

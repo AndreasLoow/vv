@@ -1,22 +1,12 @@
 module c_display;
 
-// The display tasks ($display, $monitor, etc.)
-// are useful for printf-style debugging.
-//
-// The display tasks can be invoked in a great
-// variety of ways; e.g., see this call from
-// p. 239 of the Verilog standard:
-//
-// $monitor($time, , "a = %b b = %b", a, b);
-//
-// In VV, however, to simplify the implementation,
-// the first argument must be a format string
-// and only %b (for value) and %d (for time)
-// are supported.
+// Display tasks such as $display, $monitor, 
+// etc., are useful for printf-style debugging.
 
-// E.g., the following is similar to the
-// b_twoprocesses module, but we are instead
-// illustrating nondeterminism using $display:
+// E.g., the following is similar to the previous
+// b_twoprocesses module, but where we instead
+// illustrate nondeterminism using $display
+// (see the rightmost column after executing $display):
 
 logic a;
 

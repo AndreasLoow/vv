@@ -25,7 +25,6 @@ module scheduling;
 // FAILED message to ever be displayed?
 
 // The above boils down to if procedural and continuous
-// processes can be interleaved. Some simulators allow this,
-// others do not, see schedule/seq_comb01.sv.
+// processes can be interleaved.
 
 endmodule

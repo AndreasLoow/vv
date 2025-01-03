@@ -5,10 +5,11 @@ logic b = 1'b0;
 
 initial $monitor("time = %d, a = %b, b = %b", $time, a, b);
 
-// Verilog also has support for "intra-assignment timing control", see 10.4.1 Blocking procedural assignments
+// Verilog also has support for "intra-assignment timing control",
+// see 10.4.1 Blocking procedural assignments
 
-// To illustrate the difference between a delayed assignment and an assignment with intra-assignment delay,
-// consider the following:
+// To illustrate the difference between a delayed assignment and an
+//  assignment with intra-assignment delay, consider the following:
 
 // The rhs will not be evaluated until time slot 15
 initial #15 a = b;

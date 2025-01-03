@@ -8,8 +8,8 @@ module readme;
 // [...] as a starting point for discussion on
 // exactly what the standard should entail [...]."
 //
-// In the modules in this directory, we respond to
-// the questions and suggestions raised by Meredith et al..
+// In the modules in this directory, we give some comments on
+// the questions and suggestions raised by Meredith et al.
 // We refer the tech. report version of the paper since
 // that version is slightly longer than the published
 // paper (12 pages vs. 10 pages).
