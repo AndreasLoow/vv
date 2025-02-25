@@ -12,7 +12,7 @@ VV is implemented in [ReScript](https://rescript-lang.org), an OCaml dialect of 
 
 ## Development notes
 
-Before building VV for the first time and when example files are updated, you need to execute `examples/compile.hs` (e.g., `runhaskell compile.hs`).
+Before building VV for the first time and when example modules are updated, you need to execute `examples/compile.hs` (e.g., `runhaskell compile.hs`) to generate a new/updated `src/Templates.res` file.
 
 Now, to build and run VV locally, use the following commands:
 
@@ -21,5 +21,3 @@ npm i
 npm run res:build
 npm run dev
 ```
-
-When adding new example modules, run `examples/compile.hs` to make them available to VV (i.e., generate an updated `src/Templates.res` file).
