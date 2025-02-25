@@ -12,7 +12,9 @@ VV is implemented in [ReScript](https://rescript-lang.org), an OCaml dialect of 
 
 ## Development notes
 
-To build and run VV locally, use the following commands:
+Before building VV for the first time and when example files are updated, you need to execute `examples/compile.hs` (e.g., `runhaskell compile.hs`).
+
+Now, to build and run VV locally, use the following commands:
 
 ```sh
 npm i
